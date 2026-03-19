@@ -1,11 +1,11 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta charset="UTF-8">
 <title>Ragnarok Procedural Database</title>
 
 <style>
-
 body{
 font-family:Arial;
 background:linear-gradient(160deg,#0f2027,#203a43,#2c5364);
@@ -13,9 +13,7 @@ color:#e0f7f7;
 margin:40px;
 }
 
-h1{
-color:#7fe3ea;
-}
+h1{ color:#7fe3ea; }
 
 .searchbox{
 position:relative;
@@ -44,14 +42,8 @@ z-index:9999;
 width:100%;
 }
 
-.autoitem{
-padding:8px;
-cursor:pointer;
-}
-
-.autoitem:hover{
-background:#1d4750;
-}
+.autoitem{ padding:8px; cursor:pointer; }
+.autoitem:hover{ background:#1d4750; }
 
 .section{
 margin-top:25px;
@@ -67,25 +59,10 @@ margin-bottom:10px;
 color:#7fe3ea;
 }
 
-.mob{
-cursor:pointer;
-padding:6px;
-color:#7fe3ea;
-}
+.mob{ cursor:pointer; padding:6px; color:#7fe3ea; }
+.mob:hover{ background:#1d4750; }
 
-.mob:hover{
-background:#1d4750;
-}
-
-.drop{
-padding-left:20px;
-color:#a8fff4;
-}
-
-.stats{
-margin-top:10px;
-line-height:1.6;
-}
+.stats{ margin-top:10px; line-height:1.6; }
 
 .sprite{
 width:48px;
@@ -104,7 +81,22 @@ margin-left:8px;
 font-size:12px;
 }
 
+.link{
+display:inline-block;
+margin-top:10px;
+padding:6px 10px;
+background:#1d4750;
+border-radius:6px;
+text-decoration:none;
+color:#a8fff4;
+font-size:13px;
+}
+
+.link:hover{
+background:#2f7a83;
+}
 </style>
+
 </head>
 
 <body>
@@ -112,329 +104,189 @@ font-size:12px;
 <h1>Ragnarok Database</h1>
 
 <div class="searchbox">
-<input id="itemSearch" placeholder="Search item">
+<input id="itemSearch" placeholder="Search item (name or ID)">
 <div id="itemAuto" class="autocomplete"></div>
 </div>
 
 <br>
 
 <div class="searchbox">
-<input id="mobSearch" placeholder="Search monster">
+<input id="mobSearch" placeholder="Search monster (name or ID)">
 <div id="mobAuto" class="autocomplete"></div>
 </div>
 
-<div id="results"></div>
+<div id="result"></div>
 
 <script>
+let items={}, itemInfo={}, itemToMobs={}, mobToItems={}, mobStats={}, mobSpawn={};
+let dbLoaded = false;
 
-let items={}
-let itemToMobs={}
-let mobToItems={}
-let mobStats={}
-let mobSpawn={}
-let mobSkills={}
-
-let itemNames=[]
-let mobNames=[]
-
-async function load(){
-
-items = await (await fetch("/db/items.json")).json()
-itemToMobs = await (await fetch("/db/item_to_mobs.json")).json()
-mobToItems = await (await fetch("/db/mob_to_items.json")).json()
-mobStats = await (await fetch("/db/mob_stats.json")).json()
-mobSpawn = await (await fetch("/db/mob_spawn.json")).json()
-
-try{
-mobSkills = await (await fetch("/db/mob_skills.json")).json()
-}catch(e){}
-
-buildIndexes()
-
+function debounce(fn, delay){
+let t;
+return (...args)=>{
+clearTimeout(t);
+t = setTimeout(()=>fn(...args), delay);
+};
 }
 
-function buildIndexes(){
+async function loadDB(){
+items = await fetch('db/items.json').then(r=>r.json());
+itemInfo = await fetch('db/item_info.json').then(r=>r.json());
+itemToMobs = await fetch('db/item_to_mobs.json').then(r=>r.json());
+mobToItems = await fetch('db/mob_to_items.json').then(r=>r.json());
+mobStats = await fetch('db/mob_stats.json').then(r=>r.json());
+mobSpawn = await fetch('db/mob_spawn.json').then(r=>r.json());
 
-for(let id in items){
+dbLoaded = true;
 
-itemNames.push({
-id:id,
-name:items[id]
-})
-
+setupSearch("itemSearch","itemAuto",items,showItem,false);
+setupSearch("mobSearch","mobAuto",mobStats,showMob,true);
 }
 
-for(let id in mobStats){
+loadDB();
 
-mobNames.push({
-id:id,
-name:mobStats[id].name
-})
-
+function divineItem(id){
+return `https://www.divine-pride.net/database/item/${id}`;
 }
 
-}
-
-function generateMobSprite(id){
-
-let canvas=document.createElement("canvas")
-canvas.width=32
-canvas.height=32
-
-let ctx=canvas.getContext("2d")
-
-let r=(id*53)%255
-let g=(id*97)%255
-let b=(id*173)%255
-
-ctx.fillStyle=`rgb(${r},${g},${b})`
-ctx.fillRect(0,0,32,32)
-
-ctx.fillStyle="white"
-ctx.fillRect(8,8,16,16)
-
-ctx.fillStyle="black"
-ctx.fillRect(12,12,4,4)
-ctx.fillRect(20,12,4,4)
-
-return canvas.toDataURL()
-
-}
-
-function computeThreat(stats){
-
-let score =
-parseInt(stats.hp)/100 +
-parseInt(stats.atk1) +
-parseInt(stats.def)*2 +
-parseInt(stats.level)*3
-
-if(score < 50) return "Low"
-if(score < 200) return "Medium"
-if(score < 500) return "High"
-return "Boss"
-
-}
-
-function autocomplete(input,data,box){
-
-let q=input.value.trim().toLowerCase()
-
-box.innerHTML=""
-
-if(q.length==0) return
-
-let start=[]
-let contains=[]
-
-for(let e of data){
-
-let name=e.name.toLowerCase()
-
-if(name.startsWith(q))
-start.push(e)
-
-else if(name.includes(q))
-contains.push(e)
-
-}
-
-let results=[...start,...contains].slice(0,10)
-
-results.forEach(r=>{
-
-let div=document.createElement("div")
-div.className="autoitem"
-
-div.innerText=r.name
-
-div.onclick=()=>{
-
-input.value=r.name
-box.innerHTML=""
-
-if(data===itemNames)
-searchItemById(r.id)
-else
-showMob(r.id)
-
-}
-
-box.appendChild(div)
-
-})
-
-}
-
-function searchItemById(id){
-
-let results=document.getElementById("results")
-
-results.innerHTML=""
-
-let box=document.createElement("div")
-box.className="section"
-
-box.innerHTML="<div class='title'>"+items[id]+" dropped by:</div>"
-
-if(!itemToMobs[id]){
-box.innerHTML+="No drops."
-results.appendChild(box)
-return
-}
-
-itemToMobs[id].forEach(m=>{
-
-let div=document.createElement("div")
-div.className="mob"
-
-div.innerHTML="👾 "+m.mob_name+" ("+(m.rate/100)+"%)"
-
-div.onclick=()=>showMob(m.mob_id)
-
-box.appendChild(div)
-
-})
-
-results.appendChild(box)
-
+function divineMob(id){
+return `https://www.divine-pride.net/database/monster/${id}`;
 }
 
 function showMob(id){
+if(!dbLoaded || !mobStats[id]) return;
 
-let results=document.getElementById("results")
-results.innerHTML=""
+const s = mobStats[id];
+const drops = mobToItems[id] || [];
+const maps = mobSpawn[id] || [];
 
-let stats=mobStats[id]
+let html = `
+<div class="section">
+<img class="sprite" src="https://static.divine-pride.net/images/mobs/${id}.gif">
 
-let box=document.createElement("div")
-box.className="section"
+<div class="title">${s.name}
+<span class="tag">ID ${id}</span>
+</div>
 
-let img=document.createElement("img")
-img.src=generateMobSprite(id)
-img.className="sprite"
-
-box.appendChild(img)
-
-let threat=computeThreat(stats)
-
-box.innerHTML+=`
-<div class="title">👾 ${stats.name} <span class="tag">${threat}</span></div>
+<a class="link" href="${divineMob(id)}" target="_blank">
+🔗 View on Divine Pride
+</a>
 
 <div class="stats">
-
-Level: ${stats.level}<br>
-HP: ${stats.hp}<br>
-ATK: ${stats.atk1}-${stats.atk2}<br>
-DEF: ${stats.def} | MDEF: ${stats.mdef}<br>
-
-STR ${stats.str}
-AGI ${stats.agi}
-VIT ${stats.vit}<br>
-
-INT ${stats.int}
-DEX ${stats.dex}
-LUK ${stats.luk}<br>
-
-Race: ${stats.race}<br>
-Element: ${stats.element}
-
+Level: ${s.level} <br>
+HP: ${s.hp} <br>
+ATK: ${s.atk1} ~ ${s.atk2} <br>
+DEF: ${s.def} | MDEF: ${s.mdef} <br>
+STR: ${s.str} AGI: ${s.agi} VIT: ${s.vit} <br>
+INT: ${s.int} DEX: ${s.dex} LUK: ${s.luk} <br>
+Race: ${s.race} | Element: ${s.element}
 </div>
-`
 
-box.innerHTML+="<br><b>Drops</b><br>"
+<div class="stats">
+<b>Maps:</b><br>
+${maps.length ? maps.join(", ") : "Unknown"}
+</div>
 
-if(mobToItems[id]){
+<div class="stats">
+<b>Drops:</b><br>
+${drops.map(d=>`
+<div class="mob" onclick="showItem(${d.item_id})">
+${d.item_name} (${(d.rate/100).toFixed(2)}%)
+</div>
+`).join("")}
+</div>
+</div>
+`;
 
-mobToItems[id].forEach(d=>{
-
-let drop=document.createElement("div")
-drop.className="drop"
-
-drop.innerHTML="📦 "+d.item_name+" ("+(d.rate/100)+"%)"
-
-box.appendChild(drop)
-
-})
-
+document.getElementById("result").innerHTML = html;
 }
 
-if(mobSkills[id]){
+function showItem(id){
+if(!dbLoaded || !itemInfo[id]) return;
 
-box.innerHTML+="<br><b>Skills</b><br>"
+const info = itemInfo[id];
+const mobs = itemToMobs[id] || [];
 
-mobSkills[id].forEach(s=>{
+let html = `
+<div class="section">
+<img class="sprite" src="https://static.divine-pride.net/images/items/${id}.png">
 
-let skill=document.createElement("div")
-skill.className="drop"
+<div class="title">
+${info.name}
+<span class="tag">ID ${id}</span>
+<span class="tag">${info.aegis}</span>
+</div>
 
-skill.innerText="✨ "+s
+<a class="link" href="${divineItem(id)}" target="_blank">
+🔗 View on Divine Pride
+</a>
 
-box.appendChild(skill)
+<div class="stats">
+<b>Dropped by:</b><br>
+${mobs.map(m=>`
+<div class="mob" onclick="showMob(${m.mob_id})">
+${m.mob_name} (${(m.rate/100).toFixed(2)}%)
+</div>
+`).join("")}
+</div>
+</div>
+`;
 
-})
-
+document.getElementById("result").innerHTML = html;
 }
 
-let spawns = mobSpawn[String(id)]
+function setupSearch(inputId, autoId, data, callback, isMob){
+const input = document.getElementById(inputId);
+const auto = document.getElementById(autoId);
 
-if(spawns && spawns.length){
+input.addEventListener("input", debounce(()=>{
 
-box.innerHTML+="<br><b>Spawn Maps</b><br>"
+let val = input.value.toLowerCase().trim();
+auto.innerHTML="";
 
-let counts={}
+if(!val) return;
 
-spawns.forEach(m=>{
-counts[m]=(counts[m]||0)+1
-})
+// busca por ID direto
+if(data[val]){
+let name = isMob ? data[val].name : data[val];
 
-for(let m in counts){
-
-let map=document.createElement("div")
-map.className="drop"
-map.innerText=`🗺 ${m} (${counts[m]})`
-
-box.appendChild(map)
-
+let div = document.createElement("div");
+div.className="autoitem";
+div.innerText = `[ID ${val}] ${name}`;
+div.onclick = ()=>{
+callback(val);
+auto.innerHTML="";
+input.value="";
+};
+auto.appendChild(div);
+return;
 }
 
-}
-
-results.appendChild(box)
-
-}
-
-document.getElementById("itemSearch").addEventListener("input",()=>{
-
-autocomplete(
-document.getElementById("itemSearch"),
-itemNames,
-document.getElementById("itemAuto")
-)
-
+// busca por nome
+Object.entries(data)
+.filter(([id,obj])=>{
+let name = isMob ? obj.name : obj;
+return name.toLowerCase().includes(val);
 })
+.slice(0,20)
+.forEach(([id,obj])=>{
+let name = isMob ? obj.name : obj;
 
-document.getElementById("mobSearch").addEventListener("input",()=>{
+let div = document.createElement("div");
+div.className="autoitem";
+div.innerText = `[${id}] ${name}`;
 
-autocomplete(
-document.getElementById("mobSearch"),
-mobNames,
-document.getElementById("mobAuto")
-)
+div.onclick=()=>{
+callback(id);
+auto.innerHTML="";
+input.value="";
+};
 
-})
+auto.appendChild(div);
+});
 
-document.addEventListener("click",e=>{
-
-if(!e.target.closest(".searchbox")){
-document.getElementById("itemAuto").innerHTML=""
-document.getElementById("mobAuto").innerHTML=""
+},200));
 }
-
-})
-
-load()
-
 </script>
 
 </body>
