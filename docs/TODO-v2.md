@@ -2,6 +2,20 @@
 
 Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e detalha o planejamento técnico das próximas funcionalidades de gameplay procedural, sincronização cliente-servidor e infraestrutura autônoma.
 
+
+---
+
+## 0. Identidade & Filosofia de Design (Roguelike Efêmero & Torneios de Eventos)
+
+> **Premissa Fundamental**: Este projeto **não é um MMO eterno**, com economia inflacionária, WoE massiva de centenas de players ou grind de meses. É um servidor **descartável e portátil**, projetado para:
+> 1. **Loop Roguelike Solo (~12 horas)**: Um jogador cria seu personagem, progride do nível 1 ao 99 em um único final de semana, monta uma build funcional com drops procedurais, derrota MVPs solo e "vai trabalhar na segunda-feira com o dever cumprido".
+> 2. **Operações Curtas e Descartáveis (1 dia a 3 meses)**: Ideal para ser levantado localmente em computadores de eventos de anime, encontros presenciais, LAN parties ou temporadas rápidas. Ao fim da rodada/evento, o mundo pode ser descartado ou resetado com uma nova seed.
+> 3. **Competitividade Local / Metropolitana**: Em eventos presenciais de anime ou redes locais, o foco competitivo é o desafio rápido:
+>    - **Speedrun 1-99**: Quem atinge o nível máximo mais rápido a partir de uma seed desconhecida.
+>    - **MVP Bounty Hunter**: Placar ao vivo de caça a MVPs (primeiro a abater, maior quantidade de MVPs distintos solados).
+>    - **Modo Telão/Kiosk**: Interface do painel que pode ficar aberta em fullscreen numa TV/projetor no estande do evento exibindo a liderança em tempo real.
+> 4. **Fora de Escopo**: Economia persistente de mercado de longo prazo, guerras de guilda (GvG/WoE) de grande escala, taxas punitivas de 0.01% e sistemas burocráticos de retenção de jogadores.
+
 ---
 
 ## 1. Fundação da Versão 2 (Entregas Concluídas)
@@ -50,7 +64,7 @@ Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e det
 
 ## 3. Engine de Drops Procedurais Inteligente (Refatoração de `randomize_drops.py`)
 
-> **Objetivo**: Substituir a randomização ingênua (sorteio uniforme de IDs) por um sistema de game design estruturado, com progressão, variedade e preservação do ciclo de recompensas.
+> **Objetivo**: Substituir a randomização ingênua (sorteio uniforme de IDs) por um sistema calibrado para o **Loop Roguelike Solo de 12 Horas**, onde o jogador é 100% autossuficiente (Solo Self-Found), sem depender de comércio com outros players.
 
 - [ ] **Sistema de Tiers por Nível de Monstro (Level Brackets)**:
   - Categorizar monstros pelo campo de nível (`cols[3]` de `mob_db.txt`):
@@ -61,17 +75,17 @@ Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e det
     - *Tier 5 (MvPs)*: Equipamentos divinos, slots máximos, caixas raras.
   - Implementar mecânica de *Lucky Roll* (2% a 5% de chance de um monstro puxar um item do Tier seguinte).
 - [ ] **Slots de Drop com Papéis Estruturados (Role-based Slots)**:
-  - *Slot 1 (Sobrevivência)*: Cura e utilitários (poções, asas, ervas) com taxa de 30% a 60%.
+  - *Slot 1 (Sobrevivência Solo)*: Cura e utilitários (poções, asas, ervas) com taxa generosa (30% a 60%) para sustentar gameplay sem priest.
   - *Slots 2–3 (Economia)*: Itens Etc para venda no NPC com taxa de 40% a 70%.
   - *Slot 4 (Progressão)*: Minérios de refino e gemas com taxa de 10% a 25%.
-  - *Slot 5 (Equipamento do Tier)*: Armas e armaduras compatíveis com taxa de 5% a 15%.
+  - *Slot 5 (Equipamento do Tier)*: Armas e armaduras compatíveis com taxa de 5% a 15% (viabilizando montagem de build em 12h).
   - *Slot 6 (Equipamento Raro / Joia)*: Itens especiais com taxa de 1% a 3%.
   - *Slot 7 (Curiosidade)*: Velha Caixa Azul, Galho Seco, etc., com taxa de 1% a 5%.
   - *Slot 8 (Carta)*: Carta preservada ou com chance ponderada.
 - [ ] **Afinidade Temática por Raça e Elemento**:
   - Cruzar `cols[21]` (raça) e `cols[22]` (elemento) do `mob_db.txt` para direcionar tipos de itens (ex: monstros de fogo dropam minérios/itens ígneos; monstros aquáticos dropam itens marítimos).
 - [ ] **Curva de Probabilidade Ponderada (Weighted Rarity)**:
-  - Substituir o sorteio linear (`random.randint(100, 5000)`) por uma curva log-normal / exponencial, garantindo a sensação clássica de dopamina ao dropar itens raros.
+  - Substituir o sorteio linear (`random.randint(100, 5000)`) por uma curva balanceada que respeita a escala de 12 horas.
 - [ ] **Curadoria e Limpeza de Base (Whitelist & Blacklist)**:
   - Filtrar itens inacabados, de eventos coreanos desativados, itens sem função ou de peso descalibrado (>500 peso).
 
@@ -101,14 +115,20 @@ Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e det
 
 ---
 
-## 5. Expansão do Painel Web (Filament v3)
+## 5. Expansão do Painel Web (Filament v3) & Módulo de Torneios / Eventos
 
+> **Objetivo**: Fornecer controle operacional rápido e interfaces competitivas locais para telões em convenções de anime e encontros presenciais.
+
+- [ ] **Módulo Competitivo Local (Torneios de Convenção de Anime)**:
+  - **Speedrun 1-99 Leaderboard**:
+    - Tabela de classificação com personagens que atingiram nível 99, calculando o menor tempo real de jogo (`playtime` / timestamp de criação até 99).
+  - **MVP Bounty Hunter Board**:
+    - Monitoramento de mortes de MVPs, pontuando os caçadores por primeira eliminação e total de MVPs solados na rodada.
+  - **Modo Kiosk / Telão do Evento (`/event/scoreboard`)**:
+    - Página limpa, estilo arcade/dark retro, com auto-refresh a cada 15 segundos para exibição em TVs, projetores e telões do estande do evento.
 - [ ] **World Seed Manager Interativo**:
   - Adicionar ação de formulário no Filament para digitar uma nova seed e disparar a geração do mundo (`make world SEED=...`) em segundo plano, exibindo os logs em tempo real na interface web.
 - [ ] **Visualizador Detalhado de Drops e Spawns**:
   - Expandir a página `WorldDatabase` para mostrar quais monstros dropam determinado item pesquisado e em quais mapas eles aparecem.
-- [ ] **Rankings e Estatísticas do Servidor**:
-  - Criar widgets no Dashboard do Filament com estatísticas da base:
-    - Top 10 Personagens por Nível / Zeny.
-    - Top Guildas.
-    - Quantidade de Contas Ativas e Personagens Online.
+- [ ] **Ferramenta de Reset de Temporada / Novo Dia de Evento**:
+  - Ação administrativa para arquivar placares do dia anterior, zerar personagens e iniciar uma nova rodada com seed limpa.
