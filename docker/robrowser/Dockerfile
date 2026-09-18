@@ -35,4 +35,5 @@ COPY Config.local.template.js /opt/Config.local.template.js
 
 EXPOSE 8080 5999
 
-CMD sh -c "cd /opt/roBrowserLegacy && envsubst < /opt/Config.local.template.js > Config.local.js && wsproxy -a ragnarok-server:6900,ragnarok-server:6121,ragnarok-server:5121 & http-server -p 8080 -a 0.0.0.0"
+CMD bash -c "cd /opt/roBrowserLegacy && export RO_REMOTE_CLIENT=\"\${RO_REMOTE_CLIENT:-/}\" && envsubst < /opt/Config.local.template.js > Config.local.js && wsproxy -a ragnarok-server:6900,ragnarok-server:6121,ragnarok-server:5121 & http-server -p 8080 -a 0.0.0.0 --cors -c-1"
+

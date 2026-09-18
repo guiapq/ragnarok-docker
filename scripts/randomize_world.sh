@@ -34,11 +34,13 @@ export WORLD_SEED_NUMERIC=$NUMERIC_SEED
 
 echo "Numeric seed: $WORLD_SEED_NUMERIC"
 
-echo "Stopping server..."
-if docker ps --format '{{.Names}}' | grep -q '^ragnarok-server$'; then
+echo "Checking server status..."
+running_containers=$(docker ps --format '{{.Names}}' 2>/dev/null || true)
+if echo "$running_containers" | grep -q '^ragnarok-server$'; then
+    echo "Stopping server..."
     docker exec ragnarok-server sh -c "cd /usr/bin/rathena && sh ./athena-start stop" || true
 else
-    echo "[WARN] Container ragnarok-server não está em execução; seguindo com randomização offline."
+    echo "[WARN] Container ragnarok-server não está em execução (ou docker offline); seguindo com randomização offline."
 fi
 
 run_randomizer() {

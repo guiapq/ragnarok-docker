@@ -124,16 +124,19 @@ fi
 cat <<EOF > $RATHENA/npc/custom/event_telemetry.txt
 -	script	EventTelemetry	-1,{
 OnPCLoginEvent:
-	if (#char_created_tick == 0) {
-		#char_created_tick = gettimetick(2);
+	if (char_created_tick == 0) {
+		char_created_tick = gettimetick(2);
 	}
 	end;
 
 OnPCBaseLvUpEvent:
-	if (BaseLevel >= 99 && #has_achieved_99 == 0) {
-		#has_achieved_99 = 1;
+	if (BaseLevel >= 99 && has_achieved_99 == 0) {
+		has_achieved_99 = 1;
 		.@now_tick = gettimetick(2);
-		.@total_seconds = .@now_tick - #char_created_tick;
+		if (char_created_tick == 0) {
+			char_created_tick = .@now_tick;
+		}
+		.@total_seconds = .@now_tick - char_created_tick;
 		if (.@total_seconds < 1) {
 			.@total_seconds = 1;
 		}

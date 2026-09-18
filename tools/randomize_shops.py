@@ -3,6 +3,7 @@
 import os
 import random
 import re
+import sys
 
 
 def load_env():
@@ -17,56 +18,68 @@ def load_env():
 
 env=load_env()
 
-ROOT=env["RATHENA_ROOT"]
-SHOP_FILE=f"{ROOT}/{env['SHOP_FILE']}"
-ITEM_DB=f"{ROOT}/{env['ITEM_DB_PATH']}"
+ROOT=env.get("RATHENA_ROOT", "data")
+shop_rel = env.get("SHOP_FILE", "npc/merchants/shops.txt")
+SHOP_FILE = os.path.join(ROOT, shop_rel) if not os.path.isabs(shop_rel) else shop_rel
+if not os.path.isfile(SHOP_FILE):
+    alt_shop = os.path.join(ROOT, "npc/merchants/shops.txt")
+    if os.path.isfile(alt_shop):
+        SHOP_FILE = alt_shop
+
+ITEM_DB = os.path.join(ROOT, env.get("ITEM_DB_PATH", "db/re/item_db.txt"))
 
 seed=int(os.environ.get("WORLD_SEED_NUMERIC",0))
 random.seed(seed)
 
-print("Loading valid items...")
+print(f"Loading valid items from {ITEM_DB}...")
 
 valid_items=[]
 
-with open(ITEM_DB) as f:
+if os.path.isfile(ITEM_DB):
+    with open(ITEM_DB) as f:
+        for line in f:
+            if line.startswith("//") or line.strip()=="":
+                continue
 
-    for line in f:
+            cols=line.split(",")
+            try:
+                item_id=int(cols[0])
+                item_type=int(cols[3])
+            except:
+                continue
 
-        if line.startswith("//") or line.strip()=="":
-            continue
+            # apenas itens consumíveis ou equipamentos
+            if item_type in [0,2,3,4,5]:
+                valid_items.append(item_id)
 
-        cols=line.split(",")
+print("Valid items found:", len(valid_items))
 
-        try:
-            item_id=int(cols[0])
-            item_type=int(cols[3])
-        except:
-            continue
+if not valid_items:
+    print("[WARN] No valid items found, skipping shop randomization.")
+    sys.exit(0)
 
-        # apenas itens consumíveis ou equipamentos
-        if item_type in [0,2,3,4,5]:
-            valid_items.append(item_id)
+if not os.path.isfile(SHOP_FILE):
+    print(f"[WARN] Shop file {SHOP_FILE} not found, skipping.")
+    sys.exit(0)
 
-print("Valid items:",len(valid_items))
-
-print("Randomizing shops...")
+print(f"Randomizing shops in {SHOP_FILE}...")
 
 with open(SHOP_FILE) as f:
     data=f.read()
 
+replaced_count = 0
 
 def repl(match):
-
+    global replaced_count
     price=match.group(2)
-
     item=random.choice(valid_items)
-
+    replaced_count += 1
     return f"{item}:{price}"
 
-
-data=re.sub(r"(\d+):(\d+)",repl,data)
+data=re.sub(r"(\d+):(-?\d+)", repl, data)
 
 with open(SHOP_FILE,"w") as f:
     f.write(data)
 
-print("Shops randomized safely.")
+print(f"Shops randomized safely: {replaced_count} items swapped.")
+

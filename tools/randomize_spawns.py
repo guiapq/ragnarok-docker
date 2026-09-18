@@ -115,14 +115,10 @@ SPAWN_FILES=glob.glob(f"{ROOT}/npc/re/mobs/**/*.txt",recursive=True)
 print("Spawn files found:",len(SPAWN_FILES))
 
 #################################
-# regex spawn
-#################################
-
-pattern=re.compile(r'(\d+),(\d+)(?:,(\d+))?$')
-
-#################################
 # randomizar
 #################################
+
+replaced_spawns = 0
 
 for file in SPAWN_FILES:
 
@@ -132,25 +128,27 @@ for file in SPAWN_FILES:
 
         for line in f:
 
-            if "monster" not in line:
+            if line.startswith("//") or line.strip() == "":
                 new_lines.append(line)
                 continue
 
-            match=pattern.search(line)
+            parts = line.split("\t")
+            if len(parts) >= 4 and parts[1] in ("monster", "boss_monster"):
+                spawn_args = parts[3].strip().split(",")
+                try:
+                    mob_id = int(spawn_args[0])
+                    new_id = choose_mob(mob_id)
+                    spawn_args[0] = str(new_id)
+                    parts[3] = ",".join(spawn_args) + "\n"
+                    line = "\t".join(parts)
+                    replaced_spawns += 1
+                except (ValueError, IndexError):
+                    pass
 
-            if not match:
-                new_lines.append(line)
-                continue
-
-            mob_id=int(match.group(1))
-
-            new_id=choose_mob(mob_id)
-
-            newline=line.replace(str(mob_id),str(new_id),1)
-
-            new_lines.append(newline)
+            new_lines.append(line)
 
     with open(file,"w") as f:
         f.writelines(new_lines)
 
-print("Spawn randomization complete.")
+print(f"Spawn randomization complete: {replaced_spawns} spawns randomized across {len(SPAWN_FILES)} files.")
+

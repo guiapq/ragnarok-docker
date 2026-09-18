@@ -33,5 +33,8 @@ php artisan config:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
 
+echo "Executando migrações do banco..."
+php artisan migrate --force || true
+
 echo "=== Ragnarok Web Panel pronto na porta 8000 ==="
 exec php artisan serve --host=0.0.0.0 --port=8000

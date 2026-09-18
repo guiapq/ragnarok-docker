@@ -90,16 +90,16 @@ def categorize_items(item_db_file):
             if weight > 600 or item_id > 32000:
                 continue
 
-            # 1. Armas (Type 4)
-            if item_type == 4:
+            # 1. Armas (Type 5 no rAthena)
+            if item_type == 5:
                 wlv = int(cols[15]) if len(cols) > 15 and cols[15].isdigit() else 1
                 tier = min(max(wlv, 1), 4)
                 pools["equip"][tier].append(item_id)
                 if wlv >= 4:
                     pools["equip"][5].append(item_id)
 
-            # 2. Armaduras e Equipamentos (Type 5)
-            elif item_type == 5:
+            # 2. Armaduras e Equipamentos (Type 4 no rAthena)
+            elif item_type == 4:
                 elv = int(cols[16]) if len(cols) > 16 and cols[16].isdigit() else 0
                 if elv <= 25:
                     tier = 1
@@ -232,22 +232,32 @@ def main():
                 continue
 
             cols = line_str.split(",")
-            if len(cols) < 32:
+            if len(cols) < 56:
                 lines.append(line)
                 continue
 
             try:
                 mob_id = int(cols[0])
                 mob_name = cols[2]
-                level = int(cols[3]) if cols[3].isdigit() else 1
-                hp = int(cols[4]) if cols[4].isdigit() else 100
-                mode = int(cols[24], 16) if len(cols) > 24 and cols[24].startswith("0x") else 0
+                level = int(cols[4]) if cols[4].isdigit() else 1
+                hp = int(cols[5]) if cols[5].isdigit() else 100
+                mode = int(cols[25], 0) if cols[25].startswith("0x") else (int(cols[25]) if cols[25].isdigit() else 0)
             except (ValueError, IndexError):
                 lines.append(line)
                 continue
 
-            is_boss = bool(mode & 0x0020) or "MVP" in mob_name or level >= 95 or hp >= 300000
+            is_boss = bool(mode & 0x0020) or "MVP" in mob_name or level >= 90 or hp >= 200000
             tier = get_mob_tier(level, hp, is_boss)
+
+            # Se for Boss/MVP, garante drops MVP dedicados (colunas 31 a 36)
+            if is_boss:
+                mvp_equip = pick_item_with_lucky_roll(pools["equip"], 5)
+                cols[31] = str(mvp_equip)
+                cols[32] = "3000"  # 30%
+                cols[33] = "607"   # Yggdrasil Berry
+                cols[34] = "5000"  # 50%
+                cols[35] = "617"   # Old Purple Box
+                cols[36] = "4000"  # 40%
 
             # Slot 1: Sobrevivência Solo (Cura / Utilitário) — 30% a 60%
             slot1_item = pick_item_with_lucky_roll(pools["heal"], tier)
@@ -277,8 +287,8 @@ def main():
             slot7_item = pick_item_with_lucky_roll(pools["rare"], tier)
             slot7_rate = random.randint(100, 300)
 
-            # Slot 8: Carta — Preserva a carta original do monstro se existente, ou aumenta levemente a taxa (30 a 100 = 0.3% a 1.0%)
-            orig_card_id = cols[45] if len(cols) > 45 and cols[45].isdigit() else "0"
+            # Slot 8: Carta (coluna 55 e 56)
+            orig_card_id = cols[55] if len(cols) > 55 and cols[55].isdigit() else "0"
             if orig_card_id != "0":
                 slot8_item = int(orig_card_id)
                 slot8_rate = 50  # 0.5% (50x o valor clássico, ideal para roguelike curto)
@@ -286,9 +296,8 @@ def main():
                 slot8_item = pick_item_with_lucky_roll(pools["rare"], tier)
                 slot8_rate = 100
 
-            # Atualiza as colunas de Drop (a partir da coluna 31, padrão rAthena renewal mob_db)
-            # 31: Drop1, 32: Rate1, 33: Drop2, 34: Rate2, ...
-            # 45: DropCard, 46: RateCard
+            # Normal drops em mob_db.txt começam na coluna 37:
+            # Drop1 (37), Rate1 (38), Drop2 (39), Rate2 (40)... Drop8 (51), Rate8 (52)
             slots_data = [
                 (slot1_item, slot1_rate),
                 (slot2_item, slot2_rate),
@@ -297,15 +306,19 @@ def main():
                 (slot5_item, slot5_rate),
                 (slot6_item, slot6_rate),
                 (slot7_item, slot7_rate),
-                (slot8_item, slot8_rate),
             ]
 
-            col_idx = 31
+            col_idx = 37
             for item, rate in slots_data:
                 if col_idx + 1 < len(cols):
                     cols[col_idx] = str(item)
                     cols[col_idx + 1] = str(rate)
                 col_idx += 2
+
+            # Coluna 55 e 56: DropCardid e DropCardper
+            if len(cols) > 56:
+                cols[55] = str(slot8_item)
+                cols[56] = str(slot8_rate)
 
             lines.append(",".join(cols) + "\n")
             mobs_processed += 1

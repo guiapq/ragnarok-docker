@@ -1,7 +1,7 @@
 window.ROConfigLocal = {
 
     socketProxy: "ws://${RO_IP}:5999",
-    remoteClient: "${RO_REMOTE_CLIENT:-/}",
+    remoteClient: "${RO_REMOTE_CLIENT}",
 
     servers: [{
         display: "Docker Ragnarok",

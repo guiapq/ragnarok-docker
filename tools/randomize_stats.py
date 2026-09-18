@@ -56,10 +56,10 @@ for line in lines:
         v=int(v)
         return str(max(1,int(v*(1+random.uniform(-var,var)))))
 
-    c[4]=mutate(c[4])   # HP
-    c[9]=mutate(c[9])   # ATK1
-    c[10]=mutate(c[10]) # ATK2
-    c[11]=mutate(c[11]) # DEF
+    c[5]=mutate(c[5])   # HP
+    c[10]=mutate(c[10]) # ATK1
+    c[11]=mutate(c[11]) # ATK2
+    c[12]=mutate(c[12]) # DEF
 
     new.append(",".join(c))
 

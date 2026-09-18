@@ -39,9 +39,24 @@ def main() -> None:
     if not item_info_lua.exists() or item_info_lua.stat().st_size == 0:
         fail(f"itemInfo.lua ausente ou vazio em {item_info_lua}")
 
+    telemetry_file = ROOT / "data" / "npc" / "custom" / "event_telemetry.txt"
+    if not telemetry_file.exists() or telemetry_file.stat().st_size == 0:
+        fail(f"event_telemetry.txt ausente ou vazio em {telemetry_file}")
+
+    # Valida que o ATK das armas não foi corrompido ou zerado
+    if item_file.suffix == ".txt":
+        with open(item_file, "r", encoding="latin-1", errors="ignore") as f:
+            for line in f:
+                if line.startswith("1101,"):
+                    cols = line.split(",")
+                    if len(cols) > 7 and cols[7] in ("0", ""):
+                        fail("ATK da espada básica (1101) está zerado em item_db.txt!")
+                    break
+
     print(f"[SANITY] item_db validado: {item_file.name}")
     print(f"[SANITY] mob_db validado: {mob_file.name}")
     print(f"[SANITY] itemInfo.lua validado: {item_info_lua.name}")
+    print(f"[SANITY] event_telemetry.txt validado: {telemetry_file.name}")
     print("[SANITY] OK - todas as validações de mundo concluídas com sucesso.")
 
 

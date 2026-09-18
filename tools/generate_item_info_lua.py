@@ -71,17 +71,19 @@ RESOURCE_NAME_MAP = {
     29000: "메달",         # Medal
 }
 
-# Tipos de equipamento por bitmask ou Type
+# Tipos de equipamento no rAthena (mmo.hpp)
 ITEM_TYPES = {
     0: "Consumível",
     2: "Consumível",
     3: "Item Etc",
-    4: "Arma",
-    5: "Armadura / Equipamento",
+    4: "Armadura / Equipamento",
+    5: "Arma",
     6: "Carta",
     7: "Ovo de Mascote",
     8: "Equipamento de Mascote",
     10: "Munição",
+    11: "Consumível",
+    12: "Equipamento Sombrio",
 }
 
 
@@ -202,13 +204,13 @@ def main():
             type_name = ITEM_TYPES.get(item_type, "Outro")
             desc_lines.append(f"Tipo: ^000088{type_name}^000000")
 
-            if atk != "0" and item_type == 4:
+            if atk != "0" and item_type == 5:
                 desc_lines.append(f"Ataque: ^000088{atk}^000000")
-            if defense != "0" and item_type == 5:
+            if defense != "0" and item_type == 4:
                 desc_lines.append(f"Defesa: ^000088{defense}^000000")
             if weight > 0:
                 desc_lines.append(f"Peso: ^000088{weight:g}^000000")
-            if wlv != "0" and item_type == 4:
+            if wlv != "0" and item_type == 5:
                 desc_lines.append(f"Nível da Arma: ^000088{wlv}^000000")
             if elv != "0":
                 desc_lines.append(f"Nível Necessário: ^000088{elv}^000000")

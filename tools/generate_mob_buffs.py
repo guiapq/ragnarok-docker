@@ -94,8 +94,8 @@ with open(MOB_DB) as f:
 
         try:
             mob_id=int(cols[0])
-            level=int(cols[3])
-            mode=int(cols[26])
+            level=int(cols[4])
+            mode=int(cols[25].strip(), 0)
         except:
             continue
 
