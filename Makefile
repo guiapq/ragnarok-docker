@@ -26,10 +26,12 @@ registry-down:
 tag-images:
 	docker tag ragnarok-docker-rathena $(REGISTRY)/ragnarok/rathena:$(TAG) || true
 	docker tag ragnarok-docker-robrowser $(REGISTRY)/ragnarok/robrowser:$(TAG) || true
+	docker tag ragnarok-docker-panel $(REGISTRY)/ragnarok/panel:$(TAG) || true
 
 push-images: tag-images
 	docker push $(REGISTRY)/ragnarok/rathena:$(TAG)
 	docker push $(REGISTRY)/ragnarok/robrowser:$(TAG)
+	docker push $(REGISTRY)/ragnarok/panel:$(TAG)
 
 ps:
 	docker compose ps

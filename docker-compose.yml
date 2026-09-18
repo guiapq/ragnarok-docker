@@ -78,6 +78,29 @@ services:
     volumes:
       - ./data:/opt/roBrowserLegacy/data
 
+  panel:
+    build:
+      context: .
+      dockerfile: docker/panel/Dockerfile
+    container_name: ragnarok-panel
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE:-ragnarok}
+      DB_USERNAME: ${MYSQL_USER:-ragnarok}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-ragnarok}
+    ports:
+      - "${BIND_IP:-127.0.0.1}:8000:8000"
+    volumes:
+      - ./web:/var/www/html
+      - ./data:/var/www/html/game-data:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
   registry:
     image: registry:2
     container_name: ragnarok-registry
