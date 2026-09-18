@@ -41,8 +41,14 @@ services:
     build:
       context: .
       dockerfile: docker/rathena/Dockerfile
+      args:
+        RATHENA_REPO: https://github.com/guiapq/rathena.git
+        RATHENA_COMMIT: ac46920e73819662811573253d9b22592e8ad985
+        RO_PACKETVER: ${RO_PACKETVER:-20151104}
     container_name: ragnarok-server
     restart: unless-stopped
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
@@ -50,11 +56,10 @@ services:
       - "${BIND_IP:-127.0.0.1}:6900:6900"
       - "${BIND_IP:-127.0.0.1}:6121:6121"
       - "${BIND_IP:-127.0.0.1}:5121:5121"
-      - "${BIND_IP:-127.0.0.1}:8003:80"
     volumes:
-      - ./data/db:/usr/bin/rathena/db
-      - ./data/npc:/usr/bin/rathena/npc
-      - ./data/conf:/usr/bin/rathena/conf
+      - ./data/db:/opt/rathena/db
+      - ./data/npc:/opt/rathena/npc
+      - ./data/conf:/opt/rathena/conf
 
   robrowser:
     build:
@@ -73,5 +78,15 @@ services:
     volumes:
       - ./data:/opt/roBrowserLegacy/data
 
+  registry:
+    image: registry:2
+    container_name: ragnarok-registry
+    restart: always
+    ports:
+      - "${BIND_IP:-127.0.0.1}:5000:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+
 volumes:
   db_data:
+  registry_data:
