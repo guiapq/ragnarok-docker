@@ -13,14 +13,13 @@ COMMIT="ac46920e73819662811573253d9b22592e8ad985"
 rm -rf data_base
 
 echo
-echo "Clonando repositório..."
-git clone $REPO data_base
-
+echo "Clonando repositório (shallow fetch para commit travado)..."
+mkdir -p data_base
 cd data_base
-
-echo
-echo "Checkout para commit do container..."
-git checkout $COMMIT
+git init
+git remote add origin "$REPO"
+git fetch --depth 1 origin "$COMMIT"
+git checkout FETCH_HEAD
 
 echo
 echo "================================="

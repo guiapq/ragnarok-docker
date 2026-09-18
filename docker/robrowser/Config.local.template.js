@@ -1,7 +1,7 @@
 window.ROConfigLocal = {
 
     socketProxy: "ws://${RO_IP}:5999",
-    remoteClient: "",
+    remoteClient: "${RO_REMOTE_CLIENT:-/}",
 
     servers: [{
         display: "Docker Ragnarok",
@@ -18,6 +18,11 @@ window.ROConfigLocal = {
 
         packetKeys: ${RO_PACKETKEYS}
     }],
+
+    loadLua: true,
+    customItemInfo: [
+        "data/System/itemInfo.lua"
+    ],
 
     skipServerList: false,
     skipIntro: false

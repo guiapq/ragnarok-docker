@@ -120,6 +120,43 @@ if ! grep -q "starter_items.txt" "$NPCCONF"; then
     echo "npc: npc/custom/starter_items.txt" >> "$NPCCONF"
 fi
 
+# Telemetria de Evento / Torneio (Speedrun 99 e MVP Bounty)
+cat <<EOF > $RATHENA/npc/custom/event_telemetry.txt
+-	script	EventTelemetry	-1,{
+OnPCLoginEvent:
+	if (#char_created_tick == 0) {
+		#char_created_tick = gettimetick(2);
+	}
+	end;
+
+OnPCBaseLvUpEvent:
+	if (BaseLevel >= 99 && #has_achieved_99 == 0) {
+		#has_achieved_99 = 1;
+		.@now_tick = gettimetick(2);
+		.@total_seconds = .@now_tick - #char_created_tick;
+		if (.@total_seconds < 1) {
+			.@total_seconds = 1;
+		}
+		.@mins = .@total_seconds / 60;
+		query_sql("INSERT INTO event_speedruns (char_id, name, class, base_level, job_level, total_seconds, achieved_at, created_at, updated_at) VALUES (" + getcharid(0) + ", '" + escape_sql(strcharinfo(0)) + "', " + Class + ", " + BaseLevel + ", " + JobLevel + ", " + .@total_seconds + ", NOW(), NOW(), NOW()) ON DUPLICATE KEY UPDATE total_seconds = VALUES(total_seconds), updated_at = NOW()");
+		announce "[TORNEIO SPEEDRUN] " + strcharinfo(0) + " alcançou o Nível 99 em " + .@mins + " minutos!", bc_all, 0x00FF00;
+	}
+	end;
+
+OnNPCKillEvent:
+	if (getmonsterinfo(killedrid, MOB_MVPEXP) > 0) {
+		.@mob_name$ = getmonsterinfo(killedrid, MOB_NAME);
+		query_sql("INSERT INTO event_mvp_kills (char_id, char_name, mob_id, mob_name, killed_at, created_at, updated_at) VALUES (" + getcharid(0) + ", '" + escape_sql(strcharinfo(0)) + "', " + killedrid + ", '" + escape_sql(.@mob_name$) + "', NOW(), NOW(), NOW())");
+		announce "[MVP BOUNTY] " + strcharinfo(0) + " derrotou o chefe " + .@mob_name$ + "!", bc_all, 0xFF8800;
+	}
+	end;
+}
+EOF
+
+if ! grep -q "event_telemetry.txt" "$NPCCONF"; then
+    echo "npc: npc/custom/event_telemetry.txt" >> "$NPCCONF"
+fi
+
 #################################
 # 5 - garantir carregamento dos NPCs custom
 #################################

@@ -96,6 +96,9 @@ if [ "${ENABLE_RANDOM_GEAR:-false}" = true ]; then
  run_randomizer "Generating gear set" tools/build_full_gear_set.py
 fi
 
+echo "Synchronizing item descriptions for roBrowser..."
+python3 tools/generate_item_info_lua.py
+
 echo "Running sanity checks..."
 python3 scripts/sanity_check_world.py
 
