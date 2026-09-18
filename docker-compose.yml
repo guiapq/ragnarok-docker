@@ -57,7 +57,10 @@ services:
       - ./data/conf:/usr/bin/rathena/conf
 
   robrowser:
-    build: ./docker/robrowser
+    build:
+      context: ./docker/robrowser
+      args:
+        ROBROWSER_COMMIT: ${ROBROWSER_COMMIT:-fd9183f}
     container_name: robrowser
     restart: unless-stopped
     env_file:

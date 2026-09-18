@@ -6,7 +6,7 @@ echo "================================="
 echo "Baixando base limpa do rAthena (LOCKED)"
 echo "================================="
 
-REPO="https://github.com/rathena/rathena.git"
+REPO="https://github.com/guiapq/rathena.git"
 COMMIT="ac46920e73819662811573253d9b22592e8ad985"
 
 # limpa base anterior
