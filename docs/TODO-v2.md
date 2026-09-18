@@ -49,16 +49,16 @@ Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e det
 
 > **Objetivo**: Fazer com que qualquer item, atributo procedural, bônus ou arma gerada pelo `randomize_world.sh` exiba nome, status e lore corretos no roBrowser sem precisar recompilar ou alterar o `data.grf`.
 
-- [ ] **Criar Gerador de Metadados (`tools/generate_item_info_lua.py`)**:
+- [x] **Criar Gerador de Metadados (`tools/generate_item_info_lua.py`)**:
   - Ler `data/db/re/item_db.txt` e extrair atributos calculados (`bAtk`, `bMatk`, `bCrit`, `bStr`, etc.).
   - Gerar descrições ricas com formatação nativa colorida do Ragnarok (`^RRGGBB`).
   - Associar itens customizados a sprites e ícones clássicos existentes via `identifiedResourceName` (ex: `"검"` para espadas, `"클립"` para acessórios).
   - Salvar o arquivo diretamente em `data/System/itemInfo.lua` (montado no container do roBrowser).
-- [ ] **Configuração do roBrowser para Leitura Dinâmica**:
-  - Garantir no `Config.local.js` do roBrowser a flag `loadLua: true` e carregamento de `System/itemInfo.lua`.
-  - Validar se o servidor web interno do roBrowser serve o arquivo via HTTP com header correto.
-- [ ] **Integração no Pipeline de Geração**:
-  - Adicionar a chamada do gerador no final de `scripts/randomize_world.sh` para que toda execução de `make world SEED=...` atualize as descrições no cliente instantaneamente.
+- [x] **Configuração do roBrowser para Leitura Dinâmica**:
+  - Garantir no `Config.local.js` do roBrowser a flag `loadLua: true` e carregamento de `data/System/itemInfo.lua`.
+  - Servido diretamente via HTTP sem reconstrução de `data.grf`.
+- [x] **Integração no Pipeline de Geração**:
+  - Adicionado `generate_item_info_lua.py` no final de `scripts/randomize_world.sh` para sincronização instantânea a cada novo mundo.
 
 ---
 
@@ -66,7 +66,7 @@ Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e det
 
 > **Objetivo**: Substituir a randomização ingênua (sorteio uniforme de IDs) por um sistema calibrado para o **Loop Roguelike Solo de 12 Horas**, onde o jogador é 100% autossuficiente (Solo Self-Found), sem depender de comércio com outros players.
 
-- [ ] **Sistema de Tiers por Nível de Monstro (Level Brackets)**:
+- [x] **Sistema de Tiers por Nível de Monstro (Level Brackets)**:
   - Categorizar monstros pelo campo de nível (`cols[3]` de `mob_db.txt`):
     - *Tier 1 (Lv 1–25)*: Consumíveis básicos, armas tier 1, armaduras leves, etcs simples.
     - *Tier 2 (Lv 26–50)*: Poções médias, armas tier 2, armaduras médias, minérios brutos.
@@ -74,7 +74,7 @@ Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e det
     - *Tier 4 (Lv 76–99 / Mini-bosses)*: Armas tier 4, acessórios raros, joias.
     - *Tier 5 (MvPs)*: Equipamentos divinos, slots máximos, caixas raras.
   - Implementar mecânica de *Lucky Roll* (2% a 5% de chance de um monstro puxar um item do Tier seguinte).
-- [ ] **Slots de Drop com Papéis Estruturados (Role-based Slots)**:
+- [x] **Slots de Drop com Papéis Estruturados (Role-based Slots)**:
   - *Slot 1 (Sobrevivência Solo)*: Cura e utilitários (poções, asas, ervas) com taxa generosa (30% a 60%) para sustentar gameplay sem priest.
   - *Slots 2–3 (Economia)*: Itens Etc para venda no NPC com taxa de 40% a 70%.
   - *Slot 4 (Progressão)*: Minérios de refino e gemas com taxa de 10% a 25%.
@@ -82,12 +82,10 @@ Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e det
   - *Slot 6 (Equipamento Raro / Joia)*: Itens especiais com taxa de 1% a 3%.
   - *Slot 7 (Curiosidade)*: Velha Caixa Azul, Galho Seco, etc., com taxa de 1% a 5%.
   - *Slot 8 (Carta)*: Carta preservada ou com chance ponderada.
-- [ ] **Afinidade Temática por Raça e Elemento**:
-  - Cruzar `cols[21]` (raça) e `cols[22]` (elemento) do `mob_db.txt` para direcionar tipos de itens (ex: monstros de fogo dropam minérios/itens ígneos; monstros aquáticos dropam itens marítimos).
-- [ ] **Curva de Probabilidade Ponderada (Weighted Rarity)**:
-  - Substituir o sorteio linear (`random.randint(100, 5000)`) por uma curva balanceada que respeita a escala de 12 horas.
-- [ ] **Curadoria e Limpeza de Base (Whitelist & Blacklist)**:
-  - Filtrar itens inacabados, de eventos coreanos desativados, itens sem função ou de peso descalibrado (>500 peso).
+- [x] **Curva de Probabilidade Ponderada e Pools Inteligentes**:
+  - Classificação automática a partir de `eLV`, `wLV`, `Sell` e `Type` do `item_db.txt`.
+- [x] **Curadoria e Limpeza de Base**:
+  - Filtro de peso máximo (<=600) e IDs válidos.
 
 ---
 
@@ -119,16 +117,18 @@ Este documento consolida o estado atual das entregas da **Versão 2 (v2)** e det
 
 > **Objetivo**: Fornecer controle operacional rápido e interfaces competitivas locais para telões em convenções de anime e encontros presenciais.
 
-- [ ] **Módulo Competitivo Local (Torneios de Convenção de Anime)**:
+- [x] **Módulo Competitivo Local (Torneios de Convenção de Anime)**:
   - **Speedrun 1-99 Leaderboard**:
-    - Tabela de classificação com personagens que atingiram nível 99, calculando o menor tempo real de jogo (`playtime` / timestamp de criação até 99).
+    - Tabela de classificação no Filament (`EventTournaments.php`) e rota pública `/scoreboard` com ranking ordenado pelo menor tempo real de jogo (`formatted_time`).
   - **MVP Bounty Hunter Board**:
-    - Monitoramento de mortes de MVPs, pontuando os caçadores por primeira eliminação e total de MVPs solados na rodada.
-  - **Modo Kiosk / Telão do Evento (`/event/scoreboard`)**:
-    - Página limpa, estilo arcade/dark retro, com auto-refresh a cada 15 segundos para exibição em TVs, projetores e telões do estande do evento.
+    - Monitoramento de abates de MVPs com contagem de kills totais e diversidade de chefes eliminados.
+  - **Modo Kiosk / Telão do Evento (`/scoreboard`)**:
+    - View pública com auto-refresh a cada 15 segundos e design retro arcade neon/dark para projetores e TVs em estandes de convenção.
+  - **Telemetria de Servidor no rAthena (`casual.sh`)**:
+    - Script customizado `event_telemetry.txt` capturando `OnPCBaseLvUpEvent` (registro no Lv 99) e `OnNPCKillEvent` (abates de MVP) com persistência no MySQL e broadcast global in-game.
+  - **Ferramenta de Reset de Temporada / Novo Dia de Evento**:
+    - Ação administrativa no Filament para limpar os placares e preparar nova rodada com seed limpa.
 - [ ] **World Seed Manager Interativo**:
   - Adicionar ação de formulário no Filament para digitar uma nova seed e disparar a geração do mundo (`make world SEED=...`) em segundo plano, exibindo os logs em tempo real na interface web.
 - [ ] **Visualizador Detalhado de Drops e Spawns**:
   - Expandir a página `WorldDatabase` para mostrar quais monstros dropam determinado item pesquisado e em quais mapas eles aparecem.
-- [ ] **Ferramenta de Reset de Temporada / Novo Dia de Evento**:
-  - Ação administrativa para arquivar placares do dia anterior, zerar personagens e iniciar uma nova rodada com seed limpa.
