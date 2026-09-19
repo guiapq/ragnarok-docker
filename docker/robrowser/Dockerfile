@@ -13,9 +13,10 @@ RUN apk add --no-cache \
 
 RUN npm install -g wsproxy http-server
 
-# baixar robrowser do fork com commit travado
+# baixar robrowser do fork com commit travado (suporta git local LAN)
+ARG ROBROWSER_REPO=https://github.com/guiapq/roBrowserLegacy.git
 ARG ROBROWSER_COMMIT=fd9183f
-RUN git clone https://github.com/guiapq/roBrowserLegacy.git /opt/roBrowserLegacy \
+RUN git clone ${ROBROWSER_REPO} /opt/roBrowserLegacy \
     && cd /opt/roBrowserLegacy \
     && git checkout ${ROBROWSER_COMMIT}
 

@@ -42,8 +42,8 @@ services:
       context: .
       dockerfile: docker/rathena/Dockerfile
       args:
-        RATHENA_REPO: https://github.com/guiapq/rathena.git
-        RATHENA_COMMIT: ac46920e73819662811573253d9b22592e8ad985
+        RATHENA_REPO: ${RATHENA_REPO:-https://github.com/guiapq/rathena.git}
+        RATHENA_COMMIT: ${RATHENA_COMMIT:-ac46920e73819662811573253d9b22592e8ad985}
         RO_PACKETVER: ${RO_PACKETVER:-20151104}
     container_name: ragnarok-server
     restart: unless-stopped
@@ -65,6 +65,7 @@ services:
     build:
       context: ./docker/robrowser
       args:
+        ROBROWSER_REPO: ${ROBROWSER_REPO:-https://github.com/guiapq/roBrowserLegacy.git}
         ROBROWSER_COMMIT: ${ROBROWSER_COMMIT:-fd9183f}
     container_name: robrowser
     restart: unless-stopped
