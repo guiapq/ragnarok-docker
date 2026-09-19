@@ -10,11 +10,18 @@ echo "Sincronizador de Repositórios para o Git Local (momo2)"
 echo "Alvo: http://${MOMO2_IP}:${MOMO2_PORT}/${GIT_USER}"
 echo "======================================================"
 
+MOMO2_PASS="${4:-}"
+if [ -z "$MOMO2_PASS" ]; then
+    echo -n "Digite a senha (ou token) do usuário '${GIT_USER}' no Gitea: "
+    read -rs MOMO2_PASS
+    echo ""
+fi
+
 sync_repo() {
     local name="$1"
     local dir="$2"
 
-    if [ ! -d "$dir/.git" ]; then
+    if [ ! -e "$dir/.git" ]; then
         echo "[SKIP] Diretório $dir não é um repositório git válido."
         return
     fi
@@ -22,21 +29,30 @@ sync_repo() {
     echo "--- Sincronizando: $name ($dir) ---"
     cd "$dir"
 
-    local remote_url="http://${MOMO2_IP}:${MOMO2_PORT}/${GIT_USER}/${name}.git"
+    local push_url
+    if [ -n "$MOMO2_PASS" ]; then
+        push_url="http://${GIT_USER}:${MOMO2_PASS}@${MOMO2_IP}:${MOMO2_PORT}/${GIT_USER}/${name}.git"
+    else
+        push_url="http://${MOMO2_IP}:${MOMO2_PORT}/${GIT_USER}/${name}.git"
+    fi
+
+    local clean_url="http://${MOMO2_IP}:${MOMO2_PORT}/${GIT_USER}/${name}.git"
 
     if ! git remote get-url momo2 >/dev/null 2>&1; then
-        echo "Adicionando remote 'momo2': $remote_url"
-        git remote add momo2 "$remote_url"
+        echo "Adicionando remote 'momo2': $clean_url"
+        git remote add momo2 "$push_url"
     else
-        git remote set-url momo2 "$remote_url"
+        git remote set-url momo2 "$push_url"
     fi
 
     echo "Enviando branches e tags para momo2..."
     git push momo2 --all || {
-        echo "[WARN] Não foi possível fazer push automático para $remote_url."
-        echo "       Certifique-se de que o repositório foi criado no Gitea/GitLab ou que o login foi autenticado."
+        echo "[WARN] Falha ao enviar branches para $clean_url."
     }
     git push momo2 --tags || true
+
+    # Sanitiza a URL do remote para não expor a senha em git remote -v
+    git remote set-url momo2 "$clean_url"
 
     cd - >/dev/null
 }
