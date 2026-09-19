@@ -112,6 +112,16 @@ services:
     volumes:
       - registry_data:/var/lib/registry
 
+  apt-cache:
+    image: sameersbn/apt-cacher-ng:latest
+    container_name: ragnarok-apt-cache
+    restart: always
+    ports:
+      - "${BIND_IP:-127.0.0.1}:3142:3142"
+    volumes:
+      - apt_cache_data:/var/cache/apt-cacher-ng
+
 volumes:
   db_data:
   registry_data:
+  apt_cache_data:
