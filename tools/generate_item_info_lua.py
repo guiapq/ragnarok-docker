@@ -183,22 +183,24 @@ def main():
             # Nome do recurso (sprite/ícone)
             resource_name = RESOURCE_NAME_MAP.get(item_id, aegis_name)
 
-            # Analisa bônus procedurais
+            CUSTOM_ITEMS = {2214, 2501, 2401, 2828, 2829, 29000}
+            is_procedural = item_id in CUSTOM_ITEMS
+
+            if not is_procedural:
+                continue
+
             bonus_lines = parse_script_bonuses(script)
-
-            is_procedural = (len(bonus_lines) > 0) or (item_id in [2214, 2501, 2401, 2828, 2829, 29000])
-
-            desc_lines = []
-            if is_procedural:
-                customized_count += 1
-                desc_lines.append(f"^FF8000[Item Procedural — Seed: {seed}]^000000")
-                desc_lines.append("Forjado com energias anômalas desta rodada.")
+            customized_count += 1
+            desc_lines = [
+                f"^FF8000[Item Procedural — Seed: {seed}]^000000",
+                "Forjado com energias anômalas desta rodada.",
+                "^777777----------------------------------------^000000"
+            ]
+            if bonus_lines:
+                desc_lines.append("^0000CDPropriedades Especiais:^000000")
+                for b in bonus_lines:
+                    desc_lines.append(f"  {b}")
                 desc_lines.append("^777777----------------------------------------^000000")
-                if bonus_lines:
-                    desc_lines.append("^0000CDPropriedades Especiais:^000000")
-                    for b in bonus_lines:
-                        desc_lines.append(f"  {b}")
-                    desc_lines.append("^777777----------------------------------------^000000")
 
             # Metadados de combate e uso
             type_name = ITEM_TYPES.get(item_type, "Outro")
@@ -218,12 +220,9 @@ def main():
             # Montagem do bloco Lua para o item
             desc_entries = ",\n".join([f'            "{escape_lua_string(d)}"' for d in desc_lines])
 
-            display_name_formatted = display_name
+            display_name_formatted = f"^0000CD{display_name}^000000"
             if slots > 0 and not f"[{slots}]" in display_name:
-                display_name_formatted = f"{display_name} [{slots}]"
-
-            if is_procedural:
-                display_name_formatted = f"^0000CD{display_name_formatted}^000000"
+                display_name_formatted = f"^0000CD{display_name} [{slots}]^000000"
 
             lua_entry = f"""    [{item_id}] = {{
         unidentifiedDisplayName = "{escape_lua_string(display_name)}",

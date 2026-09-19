@@ -23,7 +23,10 @@ fi
 # Instalação das dependências
 if [ ! -d "vendor" ]; then
     echo "Instalando dependências do Composer (Laravel + Filament)..."
-    composer install --no-interaction --prefer-dist --optimize-autoloader
+    composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev || {
+        echo "[WARN] composer install normal falhou. Tentando com --ignore-platform-reqs..."
+        composer install --no-interaction --prefer-dist --no-dev --ignore-platform-reqs || true
+    }
 fi
 
 if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then

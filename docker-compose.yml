@@ -79,6 +79,7 @@ services:
       - rathena
     volumes:
       - ./data:/opt/roBrowserLegacy/data
+      - ./docker/robrowser/Config.local.template.js:/opt/Config.local.template.js:ro
 
   panel:
     build:
@@ -99,6 +100,7 @@ services:
     volumes:
       - ./web:/var/www/html
       - ./data:/var/www/html/game-data:ro
+      - ./docker/panel/start.sh:/start.sh:ro
     depends_on:
       db:
         condition: service_healthy
