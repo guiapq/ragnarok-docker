@@ -16,6 +16,7 @@ services:
       - GITEA__service__DISABLE_REGISTRATION=false
       - GITEA__service__ALLOW_ONLY_EXTERNAL_REGISTRATION=false
       - GITEA__repository__DEFAULT_BRANCH=main
+      - GITEA__git_0x2E_config__receive_0x2E_shallowUpdate=true
     volumes:
       - ./gitea-data:/data
       - /etc/timezone:/etc/timezone:ro

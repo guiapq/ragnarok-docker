@@ -19,7 +19,7 @@ cd data_base
 git init
 git remote add origin "$REPO"
 git fetch --depth 1 origin "$COMMIT"
-git checkout FETCH_HEAD
+git checkout -B master FETCH_HEAD
 
 echo
 echo "================================="
