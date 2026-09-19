@@ -2,6 +2,7 @@
 set -e
 
 export COMPOSER_ALLOW_SUPERUSER=1
+export COMPOSER_MEMORY_LIMIT=-1
 git config --global --add safe.directory '*' || true
 
 cd /var/www/html
@@ -25,7 +26,10 @@ if [ ! -d "vendor" ]; then
     echo "Instalando dependências do Composer (Laravel + Filament)..."
     composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev || {
         echo "[WARN] composer install normal falhou. Tentando com --ignore-platform-reqs..."
-        composer install --no-interaction --prefer-dist --no-dev --ignore-platform-reqs || true
+        composer install --no-interaction --prefer-dist --no-dev --ignore-platform-reqs || {
+            echo "[WARN] composer install falhou. Executando composer update para sincronizar lock..."
+            composer update -W --no-interaction --prefer-dist --optimize-autoloader --no-dev || true
+        }
     }
 fi
 

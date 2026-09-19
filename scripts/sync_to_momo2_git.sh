@@ -38,6 +38,13 @@ sync_repo() {
     echo "--- Sincronizando: $name ($dir) ---"
     cd "$dir"
 
+    # Verifica se existem commits locais antes de enviar
+    if ! git rev-parse HEAD >/dev/null 2>&1; then
+        echo "[SKIP] $name não possui commits locais válidos para envio."
+        cd - >/dev/null
+        return
+    fi
+
     # Se o repositório estiver em detached HEAD, cria/aponta o branch 'master'
     local current_branch
     current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
@@ -70,7 +77,10 @@ sync_repo() {
     echo "Enviando branches e tags para momo2..."
     local push_failed=false
     if ! git push momo2 --all; then
-        push_failed=true
+        echo "Tentando envio direto da branch master..."
+        if ! git push -u momo2 master; then
+            push_failed=true
+        fi
     fi
     git push momo2 --tags >/dev/null 2>&1 || true
 
@@ -108,9 +118,13 @@ sync_repo "ragnabraza-cp" "$ROOT_DIR/web"
 # 4. roBrowserLegacy
 sync_repo "roBrowserLegacy" "$ROOT_DIR/robrowser_base"
 
+# 5. Cronus-traducao
+sync_repo "Cronus-traducao" "$ROOT_DIR/cronus_base"
+
 echo "======================================================"
 echo "Sincronização concluída!"
 echo "Para usar no docker-compose, defina em .env:"
 echo "RATHENA_REPO=http://${MOMO2_IP}:${MOMO2_PORT}/${GIT_USER}/rathena.git"
 echo "ROBROWSER_REPO=http://${MOMO2_IP}:${MOMO2_PORT}/${GIT_USER}/roBrowserLegacy.git"
+echo "CRONUS_REPO=http://${MOMO2_IP}:${MOMO2_PORT}/${GIT_USER}/Cronus-traducao.git"
 echo "======================================================"

@@ -29,3 +29,8 @@ CREATE TABLE IF NOT EXISTS event_mvp_kills (
     INDEX idx_mob_id (mob_id),
     INDEX idx_killed_at (killed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Conta de Administrador GM Fixa (roadmin, roadmin)
+INSERT INTO `login` (`account_id`, `userid`, `user_pass`, `sex`, `email`, `group_id`, `state`, `unban_time`, `expiration_time`, `logincount`, `lastlogin`, `last_ip`, `birthdate`, `character_slots`, `pincode`, `pincode_change`, `vip_time`, `old_group`)
+VALUES (2000001, 'roadmin', 'roadmin', 'M', 'admin@ragnarogue.local', 99, 0, 0, 0, 0, NULL, '', '2000-01-01', 9, '', 0, 0, 0)
+ON DUPLICATE KEY UPDATE `user_pass` = 'roadmin', `group_id` = 99;

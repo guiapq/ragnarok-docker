@@ -34,7 +34,7 @@ RUN git clone ${RATHENA_REPO} rathena \
 
 WORKDIR /build/rathena
 
-RUN ./configure --enable-packetver=${RO_PACKETVER} --enable-vip=no --enable-prere=no --enable-renewal=yes \
+RUN ./configure --enable-packetver=${RO_PACKETVER} --enable-vip=no --enable-prere=yes \
     && make clean \
     && make server
 
@@ -47,6 +47,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV LANGUAGE=C.UTF-8
+
+# Credenciais padrão e chaves de segurança da base (recuperação de acesso)
+ENV DEFAULT_DB_ROOT_PASS="rR_SecRoot#2026_9f7b3a"
+ENV DEFAULT_DB_USER="ragnarok"
+ENV DEFAULT_DB_PASS="rR_SecApp#2026_8e6d2c"
+ENV FIXED_ADMIN_USER="roadmin"
+ENV FIXED_ADMIN_PASS="roadmin"
+ENV FIXED_ADMIN_GROUP=99
 
 ARG APT_PROXY=""
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -90,12 +98,13 @@ RUN mkdir -p /opt/rathena/log && \
 # Copiar scripts utilitários
 COPY docker/rathena/start.sh /start.sh
 COPY docker/rathena/casual.sh /casual.sh
+COPY docker/rathena/seeder.sh /seeder.sh
 COPY docker/rathena/analyzer.sh /analyzer.sh
 COPY docker/rathena/cat_python.py /cat_python.py
 COPY docker/rathena/build_ro_database.py /build_ro_database.py
 
 RUN ln -sf /start.sh /launch-athena.sh && \
-    chmod +x /start.sh /casual.sh /analyzer.sh /cat_python.py /build_ro_database.py /opt/rathena/athena-start /opt/rathena/function.sh
+    chmod +x /start.sh /casual.sh /seeder.sh /analyzer.sh /cat_python.py /build_ro_database.py /opt/rathena/athena-start /opt/rathena/function.sh
 
 EXPOSE 6900 6121 5121
 

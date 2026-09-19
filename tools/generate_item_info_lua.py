@@ -113,6 +113,26 @@ def escape_lua_string(s):
     return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
 
 
+def get_official_item_ids():
+    """Lê os IDs já presentes no itemInfo.lub compilado oficial."""
+    lub_paths = ["client/System/itemInfo.lub", "System/itemInfo.lub"]
+    for lp in lub_paths:
+        if os.path.isfile(lp):
+            import struct
+            ids = set()
+            with open(lp, "rb") as f:
+                data = f.read()
+            p = 0
+            while p < len(data) - 9:
+                if data[p] == 3:
+                    val = struct.unpack("<d", data[p+1:p+9])[0]
+                    if 0 < val < 50000 and val == int(val):
+                        ids.add(int(val))
+                p += 1
+            return ids
+    return set()
+
+
 def main():
     env = load_env()
     seed = env.get("WORLD_SEED", "default")
@@ -121,24 +141,30 @@ def main():
 
     db_path = os.path.join(root, item_db_rel)
     if not os.path.isfile(db_path):
-        # Tenta data_base se data/ não estiver populado
         fallback = os.path.join("data_base", item_db_rel)
         if os.path.isfile(fallback):
             db_path = fallback
         else:
-            print(f"[ERRO] Base de itens não encontrada em {db_path} nem em {fallback}")
-            sys.exit(1)
+            fallback_prere = os.path.join(root, "db/pre-re/item_db.txt")
+            if os.path.isfile(fallback_prere):
+                db_path = fallback_prere
+            else:
+                print(f"[ERRO] Base de itens não encontrada em {db_path}")
+                sys.exit(1)
 
-    output_dir = os.path.join(root, "System")
-    os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, "itemInfo.lua")
+    output_files = [
+        os.path.join(root, "System", "itemInfo.lua"),
+        os.path.join("client", "System", "itemInfo.lua")
+    ]
 
+    official_ids = get_official_item_ids()
     print(f"Lendo base de itens de: {db_path}")
-    print(f"Gerando itemInfo.lua em: {output_file}")
+    print(f"Itens oficiais conhecidos no lub: {len(official_ids)}")
     print(f"Seed ativa: {seed}")
 
     processed_count = 0
     customized_count = 0
+    missing_count = 0
 
     lua_entries = []
 
@@ -181,26 +207,54 @@ def main():
             view = int(cols[18]) if len(cols) > 18 and cols[18].isdigit() else 0
 
             # Nome do recurso (sprite/ícone)
-            resource_name = RESOURCE_NAME_MAP.get(item_id, aegis_name)
+            if item_id in RESOURCE_NAME_MAP:
+                resource_name = RESOURCE_NAME_MAP[item_id]
+            elif item_type == 6:
+                resource_name = "카드"
+            else:
+                resource_name = aegis_name
+
+            # Carrega blacklist de itens coreanos/quebrados
+            try:
+                import json
+                if not hasattr(main, '_korean_bl'):
+                    bl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "korean_blacklisted_items.json")
+                    with open(bl_path) as blf:
+                        main._korean_bl = set(json.load(blf))
+                if item_id in main._korean_bl:
+                    continue
+            except Exception:
+                pass
 
             CUSTOM_ITEMS = {2214, 2501, 2401, 2828, 2829, 29000}
             is_procedural = item_id in CUSTOM_ITEMS
+            is_missing = item_id not in official_ids
 
-            if not is_procedural:
+            if not is_procedural and not is_missing:
                 continue
 
             bonus_lines = parse_script_bonuses(script)
-            customized_count += 1
-            desc_lines = [
-                f"^FF8000[Item Procedural — Seed: {seed}]^000000",
-                "Forjado com energias anômalas desta rodada.",
-                "^777777----------------------------------------^000000"
-            ]
-            if bonus_lines:
-                desc_lines.append("^0000CDPropriedades Especiais:^000000")
-                for b in bonus_lines:
-                    desc_lines.append(f"  {b}")
-                desc_lines.append("^777777----------------------------------------^000000")
+            desc_lines = []
+
+            if is_procedural:
+                customized_count += 1
+                desc_lines.extend([
+                    f"^FF8000[Item Procedural - Seed: {seed}]^000000",
+                    "Forjado com energias anomalas desta rodada.",
+                    "^777777----------------------------------------^000000"
+                ])
+                if bonus_lines:
+                    desc_lines.append("^0000CDPropriedades Especiais:^000000")
+                    for b in bonus_lines:
+                        desc_lines.append(f"  {b}")
+                    desc_lines.append("^777777----------------------------------------^000000")
+            else:
+                missing_count += 1
+                if bonus_lines:
+                    desc_lines.append("^0000CDPropriedades:^000000")
+                    for b in bonus_lines:
+                        desc_lines.append(f"  {b}")
+                    desc_lines.append("^777777----------------------------------------^000000")
 
             # Metadados de combate e uso
             type_name = ITEM_TYPES.get(item_type, "Outro")
@@ -220,9 +274,11 @@ def main():
             # Montagem do bloco Lua para o item
             desc_entries = ",\n".join([f'            "{escape_lua_string(d)}"' for d in desc_lines])
 
-            display_name_formatted = f"^0000CD{display_name}^000000"
+            # Nome sem códigos de cor — roBrowser exibe o identifiedDisplayName como texto puro
+            # no header do tooltip e janela de equipamentos; cor deve ficar só na description
+            display_name_formatted = display_name
             if slots > 0 and not f"[{slots}]" in display_name:
-                display_name_formatted = f"^0000CD{display_name} [{slots}]^000000"
+                display_name_formatted = f"{display_name} [{slots}]"
 
             lua_entry = f"""    [{item_id}] = {{
         unidentifiedDisplayName = "{escape_lua_string(display_name)}",
@@ -232,7 +288,7 @@ def main():
         slotCount = {slots},
         ClassNum = {view},
         unidentifiedDescriptionName = {{
-            "Um item não identificado.",
+            "Item não identificado.",
             "Utilize uma Lupa para inspecionar suas propriedades."
         }},
         identifiedDescriptionName = {{
@@ -242,28 +298,38 @@ def main():
             lua_entries.append(lua_entry)
             processed_count += 1
 
-    # Escreve o arquivo Lua final
-    with open(output_file, "w", encoding="utf-8") as out:
-        out.write("--[[ \n")
-        out.write(f"  System/itemInfo.lua gerado dinamicamente para roBrowser\n")
-        out.write(f"  Seed: {seed} | Total itens: {processed_count} | Procedurais: {customized_count}\n")
-        out.write("--]]\n\n")
-        out.write("tbl = tbl or {}\n\n")
-        out.write("local procedural_items = {\n")
-        out.write(",\n".join(lua_entries))
-        out.write("\n}\n\n")
-        out.write("-- Mescla os itens procedurais na tabela principal de itens\n")
-        out.write("for k, v in pairs(procedural_items) do\n")
-        out.write("    tbl[k] = v\n")
-        out.write("end\n\n")
-        out.write("function main()\n")
-        out.write("    return true\n")
-        out.write("end\n")
+    content = "--[[ \n"
+    content += f"  System/itemInfo.lua gerado dinamicamente para roBrowser\n"
+    content += f"  Seed: {seed} | Total itens: {processed_count} | Procedurais: {customized_count} | Adicionais: {missing_count}\n"
+    content += "--]]\n\n"
+    content += "tbl = tbl or {}\n\n"
+    content += "local procedural_items = {\n"
+    content += ",\n".join(lua_entries)
+    content += "\n}\n\n"
+    content += "-- Mescla os itens procedurais/adicionais na tabela principal\n"
+    content += "for k, v in pairs(procedural_items) do\n"
+    content += "    tbl[k] = v\n"
+    content += "    if _processedItems then\n"
+    content += "        _processedItems[k] = nil\n"
+    content += "    end\n"
+    content += "end\n\n"
+    content += "function main()\n"
+    content += "    return true\n"
+    content += "end\n"
+
+    for out_path in output_files:
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        # Salvar em UTF-8 sem BOM; wasmoon passa strings Lua como JS strings direto para AddItem,
+        # portanto o encoding do arquivo .lua nao importa para as strings processadas — apenas
+        # precisa ser UTF-8 valido para o parser Lua.
+        with open(out_path, "w", encoding="utf-8") as out:
+            out.write(content)
+        print(f"Sucesso! {out_path} gerado (utf-8).")
 
     print("=================================")
-    print(f"Sucesso! {output_file} gerado.")
     print(f"Total de itens catalogados: {processed_count}")
-    print(f"Itens procedurais com bônus destacados: {customized_count}")
+    print(f"Itens procedurais: {customized_count}")
+    print(f"Itens adicionais do item_db: {missing_count}")
     print("=================================")
 
 

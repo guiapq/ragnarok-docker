@@ -68,6 +68,75 @@ if [ "$TABLE_COUNT" -eq 0 ]; then
     echo "=== Importação inicial concluída ==="
 fi
 
+# 1. Garantir tabelas de telemetria de torneios (Speedrun 99 e MVP Bounty)
+echo "=== Verificando tabelas de torneio (event_speedruns, event_mvp_kills) ==="
+mysql -h "$DB_HOST" -P "$DB_PORT" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "
+CREATE TABLE IF NOT EXISTS event_speedruns (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    char_id INT UNSIGNED NOT NULL UNIQUE,
+    name VARCHAR(30) NOT NULL,
+    class SMALLINT UNSIGNED NOT NULL,
+    base_level INT UNSIGNED NOT NULL DEFAULT 99,
+    job_level INT UNSIGNED NOT NULL DEFAULT 50,
+    total_seconds INT UNSIGNED NOT NULL,
+    achieved_at DATETIME NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS event_mvp_kills (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    char_id INT UNSIGNED NOT NULL,
+    char_name VARCHAR(30) NOT NULL,
+    mob_id INT UNSIGNED NOT NULL,
+    mob_name VARCHAR(50) NOT NULL,
+    killed_at DATETIME NOT NULL,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    INDEX idx_char_id (char_id),
+    INDEX idx_mob_id (mob_id),
+    INDEX idx_killed_at (killed_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+" 2>/dev/null || true
+
+# 2. Provisionar conta de Administrador GM fixa (roadmin, roadmin)
+echo "=== Provisionando conta de Administrador GM fixa (roadmin) ==="
+mysql -h "$DB_HOST" -P "$DB_PORT" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "
+INSERT INTO \`login\` (\`account_id\`, \`userid\`, \`user_pass\`, \`sex\`, \`email\`, \`group_id\`, \`birthdate\`, \`character_slots\`)
+VALUES (2000001, 'roadmin', 'roadmin', 'M', 'admin@ragnarogue.local', 99, '2000-01-01', 9)
+ON DUPLICATE KEY UPDATE \`user_pass\` = 'roadmin', \`group_id\` = 99;
+" 2>/dev/null || true
+
+# 3. Aplicar automaticamente o modo CASUAL / Roguelike antes de iniciar os servidores
+echo "=== Aplicando modo CASUAL / Roguelike automaticamente ==="
+if [ -f /casual.sh ]; then
+    bash /casual.sh --apply-only
+fi
+
+# 3b. Provisionar contas de teste (apenas na primeira vez — idempotente)
+echo "=== Provisionando contas de teste (seeder) ==="
+if [ -f /seeder.sh ]; then
+    bash /seeder.sh 2>&1 | grep -E "=== |→ |✓|criado|ok|Seeder" || true
+fi
+
+# 4. Arquivo de credenciais de recuperação rápida
+cat <<EOF > /opt/rathena/CREDENTIALS.txt
+=====================================================
+RAGNAROGUE - CREDENCIAIS DO SISTEMA E RECUPERAÇÃO
+=====================================================
+Conta Administrador GM (In-game & Painel Web):
+  Usuário: roadmin
+  Senha:   roadmin
+  Nível:   99 (Acesso total / GM @commands / Painel /admin)
+
+Banco de Dados MariaDB (Host: ${DB_HOST}:${DB_PORT}):
+  Database:      ${DB_NAME}
+  Usuário App:   ${DB_USER}
+  Senha App:     ${DB_PASS}
+  Root Password: ${MYSQL_ROOT_PASSWORD:-root}
+=====================================================
+EOF
+
 echo "=== Iniciando rAthena ==="
 cd /opt/rathena
 
@@ -78,7 +147,7 @@ touch /opt/rathena/log/map-server.log /opt/rathena/log/char-server.log /opt/rath
 # Inicia servidores
 ./athena-start start 1 || ./athena-start start || true
 
-echo "=== rAthena iniciado ==="
+echo "=== rAthena iniciado com sucesso (Modo CASUAL ativo) ==="
 sleep 2
 
 echo "=== Exibindo logs em tempo real ==="

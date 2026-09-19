@@ -61,6 +61,9 @@ services:
       - ./data/db:/opt/rathena/db
       - ./data/npc:/opt/rathena/npc
       - ./data/conf:/opt/rathena/conf
+      - ./docker/rathena/start.sh:/start.sh:ro
+      - ./docker/rathena/casual.sh:/casual.sh:ro
+      - ./docker/rathena/seeder.sh:/seeder.sh:ro
 
   robrowser:
     build:
@@ -79,7 +82,11 @@ services:
       - rathena
     volumes:
       - ./data:/opt/roBrowserLegacy/data
+      - ./client/System:/opt/roBrowserLegacy/System:ro
+      - ./docker/robrowser/liblua5.1.wasm:/opt/roBrowserLegacy/liblua5.1.wasm:ro
+      - ./docker/robrowser/liblua5.1.wasm:/opt/roBrowserLegacy/src/Vendors/liblua5.1.wasm:ro
       - ./docker/robrowser/Config.local.template.js:/opt/Config.local.template.js:ro
+      - ./web/public/favicon.ico:/opt/roBrowserLegacy/favicon.ico:ro
 
   panel:
     build:

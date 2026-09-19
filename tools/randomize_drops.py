@@ -17,12 +17,13 @@ import sys
 
 def load_env():
     env = {}
-    if os.path.isfile(".env.rando"):
-        with open(".env.rando") as f:
-            for line in f:
-                if "=" in line and not line.startswith("#"):
-                    k, v = line.strip().split("=", 1)
-                    env[k] = v
+    for env_path in [".env", ".env.rando"]:
+        if os.path.isfile(env_path):
+            with open(env_path) as f:
+                for line in f:
+                    if "=" in line and not line.startswith("#"):
+                        k, v = line.strip().split("=", 1)
+                        env[k] = v
     return env
 
 
@@ -54,8 +55,20 @@ SPECIAL_BOX_ITEMS = {
 }
 
 
+def load_valid_ptbr():
+    """Carrega o mapa de itens válidos em português extraídos da base oficial bRO."""
+    ptbr_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "valid_ptbr_items.json")
+    if os.path.isfile(ptbr_path):
+        import json
+        with open(ptbr_path, "r", encoding="utf-8") as f:
+            return set(json.load(f).keys())
+    return set()
+
+
 def categorize_items(item_db_file):
     """Lê o item_db e categoriza itens por tipo e tier para alimentar os sorteios procedurais."""
+    valid_ptbr = load_valid_ptbr()
+
     pools = {
         "equip": {1: [], 2: [], 3: [], 4: [], 5: []},
         "etc":   {1: [], 2: [], 3: [], 4: [], 5: []},
@@ -81,13 +94,19 @@ def categorize_items(item_db_file):
             try:
                 item_id = int(cols[0])
                 item_type = int(cols[3])
-                sell_price = int(cols[5]) if cols[5].isdigit() else 0
+                buy_price = int(cols[4]) if cols[4].isdigit() else 0
+                sell_price = int(cols[5]) if cols[5].isdigit() else buy_price // 2
                 weight = int(cols[6]) if cols[6].isdigit() else 0
             except ValueError:
                 continue
 
-            # Filtros de sanidade: ignorar itens inacabados ou acima de peso 600
-            if weight > 600 or item_id > 32000:
+            # Filtros de sanidade:
+            # 1. Ignorar itens que não estejam na tradução em português bRO (corta itens coreanos e quebrados)
+            if valid_ptbr and str(item_id) not in valid_ptbr:
+                continue
+
+            # 2. Ignorar itens inacabados ou acima de peso 600, e travar no teto seguro da GRF (<= 15000)
+            if weight > 600 or item_id > 15000:
                 continue
 
             # 1. Armas (Type 5 no rAthena)
@@ -117,6 +136,9 @@ def categorize_items(item_db_file):
             elif item_type == 3:
                 # Ignora se for minério clássico já mapeado
                 if item_id in [1010, 1011, 984, 985, 756, 757, 998, 999]:
+                    continue
+                # Itens de gameplay válidos: peso positivo e valor de venda razoável
+                if weight == 0 or sell_price < 2:
                     continue
                 if sell_price <= 100:
                     pools["etc"][1].append(item_id)
@@ -175,8 +197,8 @@ def pick_item_with_lucky_roll(pool_dict, base_tier, lucky_chance=0.04):
 def main():
     env = load_env()
     root = env.get("RATHENA_ROOT", "data")
-    mob_db_rel = env.get("MOB_DB_PATH", "db/re/mob_db.txt")
-    item_db_rel = env.get("ITEM_DB_PATH", "db/re/item_db.txt")
+    mob_db_rel = env.get("MOB_DB_PATH", "db/pre-re/mob_db.txt")
+    item_db_rel = env.get("ITEM_DB_PATH", "db/pre-re/item_db.txt")
 
     mob_db_file = os.path.join(root, mob_db_rel)
     item_db_file = os.path.join(root, item_db_rel)

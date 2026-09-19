@@ -8,15 +8,18 @@ else
     RATHENA="/usr/bin/rathena"
 fi
 
-if pgrep -f map-server > /dev/null; then
-    echo "rAthena está rodando, parando..."
-    cd $RATHENA
-    ./athena-start stop || true
+APPLY_ONLY=0
+if [ "$1" = "--apply-only" ] || [ "$1" = "--no-start" ]; then
+    APPLY_ONLY=1
 fi
 
-echo "=== Parando rAthena se estiver rodando ==="
-cd $RATHENA
-./athena-start stop || true
+if [ "$APPLY_ONLY" -eq 0 ]; then
+    if pgrep -f map-server > /dev/null; then
+        echo "rAthena está rodando, parando para aplicar configurações..."
+        cd $RATHENA
+        ./athena-start stop || true
+    fi
+fi
 
 echo "=== Aplicando modo CASUAL ==="
 echo "Rathena path: $RATHENA"
@@ -60,30 +63,29 @@ cat <<EOF > $RATHENA/npc/custom/starter_items.txt
 
 OnPCLoginEvent:
 	if (#starter_items_given == 0) {
-		getitem 611,10000; // lupa
-		dispbottom "Você recebeu 10000 lupas iniciais!";
-                getitem 501,150;		
-		getitem 4002,2;
-                getitem 22508,1;
-                getitem 2828,1;  //enhanced
-		getitem 2214,1;
-		getitem 602,5;    // Butterfly Wing
-		getitem 2829,1;   //greed
-		getitem 2501,1;
-                getitem 2401,1;
-		getitem 4003,1;
-		getitem 4012,2;
-		getitem 969,3;
-		getitem 616,25;
-		getitem 2060,20;
-		getitem 2059,20;
-		getitem 12323,90;
-		getitem 2102,1;
-		getitem 2306,1;
-		getitem 1207,1;
+		getitem 611,1000;  // Lupa
+		dispbottom "Você recebeu 1000 lupas iniciais!";
+		getitem 501,150;   // Poção Vermelha
+		getitem 503,50;    // Poção Branca
+		getitem 505,30;    // Poção Azul
+		getitem 601,100;   // Asa de Mosca
+		getitem 602,20;    // Asa de Borboleta
+		getitem 2607,2;    // Presilha [1] (Clip)
+		getitem 2214,1;    // Laço de Cabelo
+		getitem 2501,1;    // Capuz
+		getitem 2401,1;    // Sandálias
+		getitem 2102,1;    // Vantagem / Guard
+		getitem 2306,1;    // Traje de Noviço / Adventurer's Suit
+		getitem 1207,1;    // Faca / Main Gauche
+		getitem 4002,2;    // Carta Fabre
+		getitem 4003,1;    // Carta Pupa
+		getitem 4012,2;    // Carta Ovo de Besouro-Ladrão
+		getitem 969,3;     // Ouro
+		getitem 603,5;     // Caixa Velha Azul (OBB)
+		getitem 616,2;     // Álbum Velho de Cartas (OCA)
 
 		#starter_items_given = 1;
-		dispbottom "Você recebeu 150 poções iniciais e mais!";
+		dispbottom "Você recebeu o Pacote Inicial Pré-Renovação!";
 	}
 	end;
 }
@@ -118,12 +120,14 @@ fi
 cat <<EOF > $RATHENA/npc/custom/event_telemetry.txt
 -	script	EventTelemetry	-1,{
 OnPCLoginEvent:
+	if (getgmlevel() > 0 || getcharid(3) >= 2000010) end;
 	if (char_created_tick == 0) {
 		char_created_tick = gettimetick(2);
 	}
 	end;
 
 OnPCBaseLvUpEvent:
+	if (getgmlevel() > 0 || getcharid(3) >= 2000010) end;
 	if (BaseLevel >= 99 && has_achieved_99 == 0) {
 		has_achieved_99 = 1;
 		.@now_tick = gettimetick(2);
@@ -141,6 +145,7 @@ OnPCBaseLvUpEvent:
 	end;
 
 OnNPCKillEvent:
+	if (getgmlevel() > 0 || getcharid(3) >= 2000010) end;
 	if (getmonsterinfo(killedrid, MOB_MVPEXP) > 0) {
 		.@mob_name$ = getmonsterinfo(killedrid, MOB_NAME);
 		query_sql("INSERT INTO event_mvp_kills (char_id, char_name, mob_id, mob_name, killed_at, created_at, updated_at) VALUES (" + getcharid(0) + ", '" + escape_sql(strcharinfo(0)) + "', " + killedrid + ", '" + escape_sql(.@mob_name$) + "', NOW(), NOW(), NOW())");
@@ -163,16 +168,23 @@ ATHENACONF="$RATHENA/npc/scripts_athena.conf"
 echo "=== Garantindo scripts_custom.conf ==="
 
 if ! grep -q "scripts_custom.conf" "$ATHENACONF"; then
-    echo "npc: npc/scripts_custom.conf" >> "$ATHENACONF"
+    echo "import: npc/scripts_custom.conf" >> "$ATHENACONF"
     echo "scripts_custom.conf adicionado ao scripts_athena.conf"
 fi
 
+# Corrigir entrada incorreta (npc: em vez de import:)
+sed -i 's|^npc: npc/scripts_custom.conf$|import: npc/scripts_custom.conf|' "$ATHENACONF" || true
+
 
 #################################
-# 6 - iniciar servidor
+# 6 - finalizar ou reiniciar rAthena
 #################################
 
-echo "=== Iniciando rAthena ==="
-
-cd /
-sh start.sh
+if [ "$APPLY_ONLY" -eq 0 ]; then
+    echo "=== Reiniciando rAthena ==="
+    cd $RATHENA
+    ./athena-start start 1 || ./athena-start start || true
+    echo "=== rAthena reiniciado com sucesso com o modo CASUAL ==="
+else
+    echo "=== Modo CASUAL aplicado com sucesso nas configurações ==="
+fi

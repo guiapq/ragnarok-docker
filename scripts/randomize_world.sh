@@ -98,6 +98,12 @@ if [ "${ENABLE_RANDOM_GEAR:-false}" = true ]; then
  run_randomizer "Generating gear set" tools/build_full_gear_set.py
 fi
 
+echo "Updating item prices (rare/MVP buy prices + sell exploit prevention)..."
+python3 tools/update_item_prices.py
+
+echo "Applying Renewal / WoE TE (LATAM 2026) Skill & Combat Rebalance..."
+python3 tools/apply_renewal_rebalance.py
+
 echo "Synchronizing item descriptions for roBrowser..."
 python3 tools/generate_item_info_lua.py
 
