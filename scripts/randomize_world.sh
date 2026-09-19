@@ -34,11 +34,13 @@ export WORLD_SEED_NUMERIC=$NUMERIC_SEED
 
 echo "Numeric seed: $WORLD_SEED_NUMERIC"
 
-echo "Stopping server..."
-if docker ps --format '{{.Names}}' | grep -q '^ragnarok-server$'; then
-    docker exec ragnarok-server sh -c "cd /usr/bin/rathena && sh ./athena-start stop" || true
+echo "Checking server status..."
+running_containers=$(docker ps --format '{{.Names}}' 2>/dev/null || true)
+if echo "$running_containers" | grep -q '^ragnarok-server$'; then
+    echo "Stopping server..."
+    docker exec ragnarok-server sh -c "cd /opt/rathena 2>/dev/null || cd /usr/bin/rathena; ./athena-start stop" || true
 else
-    echo "[WARN] Container ragnarok-server não está em execução; seguindo com randomização offline."
+    echo "[WARN] Container ragnarok-server não está em execução (ou docker offline); seguindo com randomização offline."
 fi
 
 run_randomizer() {
@@ -80,6 +82,9 @@ if [ "${ENABLE_MAGNIFIER_LIGHTER:-false}" = true ]; then
     run_randomizer "Fixing Magnifier weight" tools/magnifier_zero_weight.py
 fi
 
+echo "Relieving starter and survival item weights for Novice..."
+python3 tools/adjust_starter_weights.py
+
 if [ "${ENABLE_RANDOM_MOB_BUFFS:-false}" = true ]; then
     run_randomizer "Generating mob buff skills" tools/generate_mob_buffs.py
 fi
@@ -95,6 +100,15 @@ fi
 if [ "${ENABLE_RANDOM_GEAR:-false}" = true ]; then
  run_randomizer "Generating gear set" tools/build_full_gear_set.py
 fi
+
+echo "Updating item prices (rare/MVP buy prices + sell exploit prevention)..."
+python3 tools/update_item_prices.py
+
+echo "Applying Renewal / WoE TE Skill & Combat Rebalance..."
+python3 tools/apply_renewal_rebalance.py
+
+echo "Synchronizing item descriptions for roBrowser..."
+python3 tools/generate_item_info_lua.py
 
 echo "Running sanity checks..."
 python3 scripts/sanity_check_world.py

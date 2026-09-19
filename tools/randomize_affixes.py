@@ -59,13 +59,13 @@ with open(DB) as f:
 
         try:
             item_id = int(cols[0])
-            equip = int(cols[4])
-        except:
+            item_type = int(cols[3])
+        except (ValueError, IndexError):
             lines.append(line)
             continue
 
-        # equip items only
-        if equip == 0:
+        # Equipamentos apenas: Tipo 4 (Armas) e Tipo 5 (Armaduras/Acessórios)
+        if item_type not in (4, 5):
             lines.append(line)
             continue
 
@@ -83,14 +83,12 @@ with open(DB) as f:
 
         script = " ".join(bonuses)
 
-        parts = line.split("{")
-
-        if len(parts) >= 2:
-
-            new_line = f"{parts[0]}{{ {script} }},{{}}\n"
-
+        if "{" in line:
+            before_script, rest = line.split("{", 1)
+            orig_script = rest.split("}", 1)[0].strip()
+            combined_script = f"{orig_script} {script}".strip()
+            new_line = f"{before_script}{{ {combined_script} }},{{}},{{}}\n"
             lines.append(new_line)
-
         else:
             lines.append(line)
 

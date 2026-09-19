@@ -27,7 +27,7 @@ def main():
 
     DB = f"{ROOT}/{ITEM_DB}"
 
-    TARGET_ID = "2828"  # Upg Clip
+    TARGET_ID = "2607"  # Clip [1] (Pré-Renewal)
 
     if not os.path.isfile(DB):
         print(f"[ERRO] DB não encontrado: {DB}")
@@ -58,9 +58,9 @@ def main():
 
                 try:
                     before, rest = line.split("{", 1)
-                    original_script = rest.split("}", 1)[0].strip()
-
-                    combined = f"{original_script} {script}".strip()
+                    # Mantém o bônus nativo do Clip (bonus bMaxSP,10;) e anexa o bônus da seed
+                    base_script = "bonus bMaxSP,10;"
+                    combined = f"{base_script} {script}".strip()
 
                     new_line = f"{before}{{ {combined} }},{{}},{{}}\n"
 
@@ -88,7 +88,7 @@ def main():
         f.writelines(lines)
 
     print("=================================")
-    print("Upg Clip modificado com sucesso!")
+    print("Presilha [1] modificada com sucesso!")
     print(f"Item ID: {TARGET_ID}")
     print("Script aplicado:")
     print(script)

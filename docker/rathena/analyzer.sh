@@ -1,6 +1,12 @@
 #!/bin/bash
 
-DB="/usr/bin/rathena/db/re/item_db.txt"
+DB="/opt/rathena/db/re/item_db.txt"
+if [ ! -f "$DB" ]; then
+    DB="/usr/bin/rathena/db/re/item_db.txt"
+fi
+if [ ! -f "$DB" ]; then
+    DB="data/db/re/item_db.txt"
+fi
 IDS="2214|2501|2401|2829|2828"
 
 echo "================================="

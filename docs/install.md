@@ -1,6 +1,6 @@
 # Instalação
 
-Este projeto executa um servidor **Ragnarok Online baseado em rAthena** utilizando **Docker** e permite gerar mundos procedurais por seed.
+Este projeto executa um servidor de **MMORPG clássico baseado em rAthena** utilizando **Docker** e permite gerar mundos procedurais por seed.
 
 ## Matriz de compatibilidade (recomendada)
 

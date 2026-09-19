@@ -49,8 +49,9 @@ with open(DB) as f:
 
         try:
             mob_id=int(cols[0])
-            level=int(cols[3])
-            mode=int(cols[26])
+            level=int(cols[4])
+            raw_mode=cols[25].strip()
+            mode=int(raw_mode, 0)
         except:
             lines.append(line)
             continue
@@ -84,7 +85,7 @@ with open(DB) as f:
 
         # normal = não mexe
 
-        cols[26]=str(mode)
+        cols[25]=f"0x{mode:x}"
 
         lines.append(",".join(cols))
 

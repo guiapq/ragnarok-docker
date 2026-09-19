@@ -41,8 +41,15 @@ services:
     build:
       context: .
       dockerfile: docker/rathena/Dockerfile
+      args:
+        APT_PROXY: ${APT_PROXY:-}
+        RATHENA_REPO: ${RATHENA_REPO:-https://github.com/guiapq/rathena.git}
+        RATHENA_COMMIT: ${RATHENA_COMMIT:-ac46920e73819662811573253d9b22592e8ad985}
+        RO_PACKETVER: ${RO_PACKETVER:-20151104}
     container_name: ragnarok-server
     restart: unless-stopped
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
@@ -50,14 +57,20 @@ services:
       - "${BIND_IP:-127.0.0.1}:6900:6900"
       - "${BIND_IP:-127.0.0.1}:6121:6121"
       - "${BIND_IP:-127.0.0.1}:5121:5121"
-      - "${BIND_IP:-127.0.0.1}:8003:80"
     volumes:
-      - ./data/db:/usr/bin/rathena/db
-      - ./data/npc:/usr/bin/rathena/npc
-      - ./data/conf:/usr/bin/rathena/conf
+      - ./data/db:/opt/rathena/db
+      - ./data/npc:/opt/rathena/npc
+      - ./data/conf:/opt/rathena/conf
+      - ./docker/rathena/start.sh:/start.sh:ro
+      - ./docker/rathena/casual.sh:/casual.sh:ro
+      - ./docker/rathena/seeder.sh:/seeder.sh:ro
 
   robrowser:
-    build: ./docker/robrowser
+    build:
+      context: ./docker/robrowser
+      args:
+        ROBROWSER_REPO: ${ROBROWSER_REPO:-https://github.com/guiapq/roBrowserLegacy.git}
+        ROBROWSER_COMMIT: ${ROBROWSER_COMMIT:-fd9183f}
     container_name: robrowser
     restart: unless-stopped
     env_file:
@@ -69,6 +82,55 @@ services:
       - rathena
     volumes:
       - ./data:/opt/roBrowserLegacy/data
+      - ./client/System:/opt/roBrowserLegacy/System:ro
+      - ./docker/robrowser/liblua5.1.wasm:/opt/roBrowserLegacy/liblua5.1.wasm:ro
+      - ./docker/robrowser/liblua5.1.wasm:/opt/roBrowserLegacy/src/Vendors/liblua5.1.wasm:ro
+      - ./docker/robrowser/Config.local.template.js:/opt/Config.local.template.js:ro
+      - ./web/public/favicon.ico:/opt/roBrowserLegacy/favicon.ico:ro
+
+  panel:
+    build:
+      context: .
+      dockerfile: docker/panel/Dockerfile
+    container_name: ragnarok-panel
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE:-ragnarok}
+      DB_USERNAME: ${MYSQL_USER:-ragnarok}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-ragnarok}
+    ports:
+      - "${BIND_IP:-127.0.0.1}:8000:8000"
+    volumes:
+      - ./web:/var/www/html
+      - ./data:/var/www/html/game-data:ro
+      - ./docker/panel/start.sh:/start.sh:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  registry:
+    image: registry:2
+    container_name: ragnarok-registry
+    restart: always
+    ports:
+      - "${BIND_IP:-127.0.0.1}:5000:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+
+  apt-cache:
+    image: sameersbn/apt-cacher-ng:latest
+    container_name: ragnarok-apt-cache
+    restart: always
+    ports:
+      - "${BIND_IP:-127.0.0.1}:3142:3142"
+    volumes:
+      - apt_cache_data:/var/cache/apt-cacher-ng
 
 volumes:
   db_data:
+  registry_data:
+  apt_cache_data:

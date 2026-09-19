@@ -66,11 +66,13 @@ with open(MOB_DB) as f:
             lines.append(line)
             continue
 
-        base_name=cols[2]
+        base_name = cols[3] if len(cols) > 3 and cols[3].strip() else cols[2]
 
-        new_name=f"{random.choice(prefix)} {base_name} {random.choice(suffix)}"
+        new_name = f"{random.choice(prefix)} {base_name} {random.choice(suffix)}"
 
-        cols[2]=new_name
+        cols[2] = new_name
+        if len(cols) > 3:
+            cols[3] = new_name
 
         lines.append(",".join(cols))
 
