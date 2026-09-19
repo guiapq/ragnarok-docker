@@ -19,11 +19,6 @@ window.ROConfigLocal = {
         packetKeys: ${RO_PACKETKEYS}
     }],
 
-    loadLua: true,
-    customItemInfo: [
-        "data/System/itemInfo.lua"
-    ],
-
     skipServerList: false,
     skipIntro: false
 };
