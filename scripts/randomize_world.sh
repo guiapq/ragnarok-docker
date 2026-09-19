@@ -38,7 +38,7 @@ echo "Checking server status..."
 running_containers=$(docker ps --format '{{.Names}}' 2>/dev/null || true)
 if echo "$running_containers" | grep -q '^ragnarok-server$'; then
     echo "Stopping server..."
-    docker exec ragnarok-server sh -c "cd /usr/bin/rathena && sh ./athena-start stop" || true
+    docker exec ragnarok-server sh -c "cd /opt/rathena 2>/dev/null || cd /usr/bin/rathena; ./athena-start stop" || true
 else
     echo "[WARN] Container ragnarok-server não está em execução (ou docker offline); seguindo com randomização offline."
 fi

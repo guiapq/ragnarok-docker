@@ -16,21 +16,30 @@ DB_NAME="${MYSQL_DATABASE:-ragnarok}"
 echo "RO_IP: ${RO_IP}"
 echo "DB_HOST: ${DB_HOST}"
 
-# Ajuste de IPs nos confs
-sed -i "s/^char_ip:.*/char_ip: ${RO_IP}/" char_athena.conf
-sed -i "s/^map_ip:.*/map_ip: ${RO_IP}/" map_athena.conf
-sed -i "s/^char_ip:.*/char_ip: ragnarok-server/" map_athena.conf || true
-sed -i "s/^login_ip:.*/login_ip: ragnarok-server/" char_athena.conf || true
+# Ajuste de IPs nos confs (suportando linhas comentadas e descomentadas)
+sed -i "s|^\(//\)\?login_ip:.*|login_ip: 127.0.0.1|" char_athena.conf
+sed -i "s|^\(//\)\?char_ip:.*|char_ip: ${RO_IP}|" char_athena.conf
+sed -i "s|^\(//\)\?bind_ip:.*|bind_ip: 0.0.0.0|" char_athena.conf
 
-sed -i "s/^bind_ip:.*/bind_ip: 0.0.0.0/" char_athena.conf || true
-sed -i "s/^bind_ip:.*/bind_ip: 0.0.0.0/" map_athena.conf || true
+sed -i "s|^\(//\)\?char_ip:.*|char_ip: 127.0.0.1|" map_athena.conf
+sed -i "s|^\(//\)\?map_ip:.*|map_ip: ${RO_IP}|" map_athena.conf
+sed -i "s|^\(//\)\?bind_ip:.*|bind_ip: 0.0.0.0|" map_athena.conf
 
-# Configurações de banco no inter_athena.conf
-sed -i "s/sql.db_hostname:.*/sql.db_hostname: ${DB_HOST}/g" inter_athena.conf || true
-sed -i "s/sql.db_port:.*/sql.db_port: ${DB_PORT}/g" inter_athena.conf || true
-sed -i "s/sql.db_username:.*/sql.db_username: ${DB_USER}/g" inter_athena.conf || true
-sed -i "s/sql.db_password:.*/sql.db_password: ${DB_PASS}/g" inter_athena.conf || true
-sed -i "s/sql.db_name:.*/sql.db_name: ${DB_NAME}/g" inter_athena.conf || true
+# Configurações de banco no inter_athena.conf (formato rAthena inter_athena.conf)
+for prefix in login_server ipban_db char_server map_server log_db; do
+    sed -i "s|^${prefix}_ip:.*|${prefix}_ip: ${DB_HOST}|" inter_athena.conf || true
+    sed -i "s|^${prefix}_port:.*|${prefix}_port: ${DB_PORT}|" inter_athena.conf || true
+    sed -i "s|^${prefix}_id:.*|${prefix}_id: ${DB_USER}|" inter_athena.conf || true
+    sed -i "s|^${prefix}_pw:.*|${prefix}_pw: ${DB_PASS}|" inter_athena.conf || true
+    sed -i "s|^${prefix}_db:.*|${prefix}_db: ${DB_NAME}|" inter_athena.conf || true
+done
+
+# Compatibilidade caso use sintaxe sql.db_*
+sed -i "s/sql.db_hostname:.*/sql.db_hostname: ${DB_HOST}/g" inter_athena.conf 2>/dev/null || true
+sed -i "s/sql.db_port:.*/sql.db_port: ${DB_PORT}/g" inter_athena.conf 2>/dev/null || true
+sed -i "s/sql.db_username:.*/sql.db_username: ${DB_USER}/g" inter_athena.conf 2>/dev/null || true
+sed -i "s/sql.db_password:.*/sql.db_password: ${DB_PASS}/g" inter_athena.conf 2>/dev/null || true
+sed -i "s/sql.db_name:.*/sql.db_name: ${DB_NAME}/g" inter_athena.conf 2>/dev/null || true
 
 # Aguardar DB ficar online
 echo "=== Aguardando banco de dados (${DB_HOST}:${DB_PORT}) ==="
@@ -61,14 +70,16 @@ fi
 
 echo "=== Iniciando rAthena ==="
 cd /opt/rathena
-./athena-start start
-
-echo "=== rAthena iniciado ==="
-sleep 3
 
 # Criação de logs caso ainda não existam para o tail
 mkdir -p /opt/rathena/log
 touch /opt/rathena/log/map-server.log /opt/rathena/log/char-server.log /opt/rathena/log/login-server.log
 
+# Inicia servidores
+./athena-start start 1 || ./athena-start start || true
+
+echo "=== rAthena iniciado ==="
+sleep 2
+
 echo "=== Exibindo logs em tempo real ==="
-tail -f /opt/rathena/log/map-server.log /opt/rathena/log/char-server.log /opt/rathena/log/login-server.log
+exec tail -f /opt/rathena/log/map-server.log /opt/rathena/log/char-server.log /opt/rathena/log/login-server.log

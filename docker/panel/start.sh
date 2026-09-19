@@ -1,26 +1,29 @@
 #!/bin/bash
 set -e
 
+export COMPOSER_ALLOW_SUPERUSER=1
+git config --global --add safe.directory '*' || true
+
 cd /var/www/html
 
 echo "=== Ragnarok Web Panel: Inicializando ==="
 
 # Permissões do Laravel
-mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache
+mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
-# Instalação das dependências
-if [ ! -d "vendor" ]; then
-    echo "Instalando dependências do Composer (Laravel + Filament)..."
-    composer install --no-interaction --prefer-dist --optimize-autoloader
-fi
-
-# Configuração de .env e APP_KEY
+# Configuração de .env e APP_KEY (garantir antes do composer dump/discover)
 if [ ! -f .env ]; then
     if [ -f .env.example ]; then
         echo "Criando .env a partir de .env.example..."
         cp .env.example .env
     fi
+fi
+
+# Instalação das dependências
+if [ ! -d "vendor" ]; then
+    echo "Instalando dependências do Composer (Laravel + Filament)..."
+    composer install --no-interaction --prefer-dist --optimize-autoloader
 fi
 
 if ! grep -q "^APP_KEY=base64:" .env 2>/dev/null; then

@@ -64,15 +64,18 @@ COPY --from=builder /build/rathena/login-server /opt/rathena/login-server
 COPY --from=builder /build/rathena/char-server /opt/rathena/char-server
 COPY --from=builder /build/rathena/map-server /opt/rathena/map-server
 COPY --from=builder /build/rathena/athena-start /opt/rathena/athena-start
+COPY --from=builder /build/rathena/function.sh /opt/rathena/function.sh
 COPY --from=builder /build/rathena/conf /opt/rathena/conf
 COPY --from=builder /build/rathena/db /opt/rathena/db
 COPY --from=builder /build/rathena/npc /opt/rathena/npc
 COPY --from=builder /build/rathena/sql-files /opt/rathena/sql-files
 
-# Criar pasta de logs e compatibilidade com caminhos legados (/usr/bin/rathena)
+# Criar pasta de logs e compatibilidade com caminhos legados (/usr/bin/rathena e /datastoresetup)
 RUN mkdir -p /opt/rathena/log && \
     mkdir -p /usr/bin && \
-    ln -s /opt/rathena /usr/bin/rathena
+    ln -s /opt/rathena /usr/bin/rathena && \
+    mkdir -p /datastoresetup && \
+    ln -s /opt/rathena /datastoresetup/usr-bin-rathena
 
 # Copiar scripts utilitários
 COPY docker/rathena/start.sh /start.sh
@@ -81,7 +84,8 @@ COPY docker/rathena/analyzer.sh /analyzer.sh
 COPY docker/rathena/cat_python.py /cat_python.py
 COPY docker/rathena/build_ro_database.py /build_ro_database.py
 
-RUN chmod +x /start.sh /casual.sh /analyzer.sh /cat_python.py /build_ro_database.py /opt/rathena/athena-start
+RUN ln -sf /start.sh /launch-athena.sh && \
+    chmod +x /start.sh /casual.sh /analyzer.sh /cat_python.py /build_ro_database.py /opt/rathena/athena-start /opt/rathena/function.sh
 
 EXPOSE 6900 6121 5121
 

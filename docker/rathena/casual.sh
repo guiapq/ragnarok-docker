@@ -2,27 +2,21 @@
 
 set -e
 
-if pgrep -f map-server > /dev/null
-then
-  echo "rAthena est   rodando, parando..."
-  cd /usr/bin/rathena
-  sh ./athena-start stop
+if [ -d "/opt/rathena" ]; then
+    RATHENA="/opt/rathena"
+else
+    RATHENA="/usr/bin/rathena"
 fi
 
+if pgrep -f map-server > /dev/null; then
+    echo "rAthena está rodando, parando..."
+    cd $RATHENA
+    ./athena-start stop || true
+fi
 
 echo "=== Parando rAthena se estiver rodando ==="
-
-cd /usr/bin/rathena
-
-sh ./athena-start stop || true
-
-
-#################################
-# path
-#################################
-
-#RATHENA=${RATHENA_PATH:-/datastoresetup/usr-bin-rathena}
-RATHENA=/usr/bin/rathena
+cd $RATHENA
+./athena-start stop || true
 
 echo "=== Aplicando modo CASUAL ==="
 echo "Rathena path: $RATHENA"
