@@ -3,13 +3,13 @@
 # ==========================================
 FROM debian:bookworm-slim AS builder
 
-ARG RATHENA_REPO=https://github.com/guiapq/rathena.git
-ARG RATHENA_COMMIT=ac46920e73819662811573253d9b22592e8ad985
-ARG RO_PACKETVER=20151104
-
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ARG APT_PROXY=""
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    if [ -n "$APT_PROXY" ]; then echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/01proxy; fi \
+    && apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     g++ \
@@ -19,7 +19,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-libmysqlclient-dev \
     libpcre3-dev \
     zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/apt/apt.conf.d/01proxy
+
+ARG RATHENA_REPO=https://github.com/guiapq/rathena.git
+ARG RATHENA_COMMIT=ac46920e73819662811573253d9b22592e8ad985
+ARG RO_PACKETVER=20151104
 
 WORKDIR /build
 
@@ -43,7 +48,11 @@ ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV LANGUAGE=C.UTF-8
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+ARG APT_PROXY=""
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    if [ -n "$APT_PROXY" ]; then echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/01proxy; fi \
+    && apt-get update && apt-get install -y --no-install-recommends \
     default-mysql-client \
     libmariadb3 \
     libpcre3 \
@@ -55,7 +64,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     iproute2 \
     procps \
     nano \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -f /etc/apt/apt.conf.d/01proxy
 
 WORKDIR /opt/rathena
 

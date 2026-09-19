@@ -25,3 +25,12 @@ services:
     ports:
       - "3000:3000"
       - "2222:22"
+
+  apt-cache:
+    image: sameersbn/apt-cacher-ng:latest
+    container_name: momo2-apt-cache
+    restart: always
+    ports:
+      - "3142:3142"
+    volumes:
+      - ./apt-cache-data:/var/cache/apt-cacher-ng
