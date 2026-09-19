@@ -46,6 +46,7 @@ services:
         RATHENA_REPO: ${RATHENA_REPO:-https://github.com/guiapq/rathena.git}
         RATHENA_COMMIT: ${RATHENA_COMMIT:-ac46920e73819662811573253d9b22592e8ad985}
         RO_PACKETVER: ${RO_PACKETVER:-20151104}
+        BUILD_JOBS: ${BUILD_JOBS:-}
     container_name: ragnarok-server
     restart: unless-stopped
     env_file:
@@ -92,6 +93,8 @@ services:
     build:
       context: .
       dockerfile: docker/panel/Dockerfile
+      args:
+        BUILD_JOBS: ${BUILD_JOBS:-}
     container_name: ragnarok-panel
     restart: unless-stopped
     env_file:

@@ -16,7 +16,12 @@ RUN timeout 240 apk add --no-cache \
 # Instalador de extensões PHP de alta performance
 ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
-RUN timeout 600 install-php-extensions \
+ARG BUILD_JOBS=""
+
+RUN NPROC=${BUILD_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN || echo 4)} \
+    && export MAKEFLAGS="-j${NPROC}" \
+    && echo "=== Compilando extensões PHP utilizando ${NPROC} threads ===" \
+    && timeout 600 install-php-extensions \
     pdo_mysql \
     bcmath \
     intl \

@@ -41,9 +41,14 @@ RUN git config --global http.lowSpeedLimit 1000 \
 
 WORKDIR /build/rathena
 
-RUN ./configure --enable-packetver=${RO_PACKETVER} --enable-vip=no --enable-prere=yes \
+ARG BUILD_JOBS=""
+
+RUN NPROC=${BUILD_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN || echo 4)} \
+    && export MAKEFLAGS="-j${NPROC}" \
+    && echo "=== Compilando rAthena utilizando ${NPROC} threads ===" \
+    && ./configure --enable-packetver=${RO_PACKETVER} --enable-vip=no --enable-prere=yes \
     && make clean \
-    && make server
+    && make -j"${NPROC}" server
 
 # ==========================================
 # STAGE 2: Runtime
