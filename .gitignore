@@ -5,6 +5,9 @@ data/*
 data_base/*
 !data_base/.keep
 
+robrowser_base/*
+!robrowser_base/.keep
+
 
 # runtime worlds
 worlds/

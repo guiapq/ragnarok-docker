@@ -105,6 +105,9 @@ sync_repo "ragnarok-docker" "$ROOT_DIR"
 # 3. ragnabraza-cp (web panel)
 sync_repo "ragnabraza-cp" "$ROOT_DIR/web"
 
+# 4. roBrowserLegacy
+sync_repo "roBrowserLegacy" "$ROOT_DIR/robrowser_base"
+
 echo "======================================================"
 echo "Sincronização concluída!"
 echo "Para usar no docker-compose, defina em .env:"
