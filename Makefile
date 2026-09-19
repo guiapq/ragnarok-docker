@@ -6,7 +6,7 @@ FORCE ?= --force
 REGISTRY ?= 127.0.0.1:5000
 TAG ?= v2
 
-.PHONY: up down world logs doctor ps build registry-up registry-down tag-images push-images
+.PHONY: up down world logs doctor ps build registry-up registry-down tag-images push-images clean-images prune
 
 up:
 	docker compose up -d
@@ -54,3 +54,14 @@ doctor:
 	@test -f .env.rando || (echo ".env.rando ausente" && exit 1)
 	@test -d data_base || (echo "data_base ausente" && exit 1)
 	@echo "Ambiente básico OK"
+
+clean-images:
+	@echo "Removendo imagens locais construídas do projeto..."
+	@docker images -q "*ragnarok*" | xargs -r docker rmi -f 2>/dev/null || true
+	@docker image prune -f
+
+prune: down
+	@echo "Limpando containers parados, builder cache e imagens sem tag..."
+	@docker container prune -f
+	@docker builder prune -f
+	@docker image prune -f

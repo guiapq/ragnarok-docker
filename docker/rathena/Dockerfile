@@ -5,7 +5,6 @@ FROM debian:bookworm-slim AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG APT_PROXY=""
 RUN echo 'Acquire::http::Timeout "15";' > /etc/apt/apt.conf.d/99timeout && \
     echo 'Acquire::ftp::Timeout "15";' >> /etc/apt/apt.conf.d/99timeout && \
     echo 'Acquire::Retries "2";' >> /etc/apt/apt.conf.d/99timeout && \
@@ -13,8 +12,7 @@ RUN echo 'Acquire::http::Timeout "15";' > /etc/apt/apt.conf.d/99timeout && \
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    if [ -n "$APT_PROXY" ]; then echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/01proxy; fi \
-    && timeout 300 apt-get update && timeout 600 apt-get install -y --no-install-recommends \
+    timeout 300 apt-get update && timeout 600 apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     g++ \
@@ -24,8 +22,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     default-libmysqlclient-dev \
     libpcre3-dev \
     zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -f /etc/apt/apt.conf.d/01proxy
+    && rm -rf /var/lib/apt/lists/*
 
 ARG RATHENA_REPO=https://github.com/guiapq/rathena.git
 ARG RATHENA_COMMIT=ac46920e73819662811573253d9b22592e8ad985
@@ -68,7 +65,6 @@ ENV FIXED_ADMIN_USER="roadmin"
 ENV FIXED_ADMIN_PASS="roadmin"
 ENV FIXED_ADMIN_GROUP=99
 
-ARG APT_PROXY=""
 RUN echo 'Acquire::http::Timeout "15";' > /etc/apt/apt.conf.d/99timeout && \
     echo 'Acquire::ftp::Timeout "15";' >> /etc/apt/apt.conf.d/99timeout && \
     echo 'Acquire::Retries "2";' >> /etc/apt/apt.conf.d/99timeout && \
@@ -76,8 +72,7 @@ RUN echo 'Acquire::http::Timeout "15";' > /etc/apt/apt.conf.d/99timeout && \
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    if [ -n "$APT_PROXY" ]; then echo "Acquire::http::Proxy \"$APT_PROXY\";" > /etc/apt/apt.conf.d/01proxy; fi \
-    && timeout 300 apt-get update && timeout 600 apt-get install -y --no-install-recommends \
+    timeout 300 apt-get update && timeout 600 apt-get install -y --no-install-recommends \
     default-mysql-client \
     libmariadb3 \
     libpcre3 \
@@ -89,8 +84,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     iproute2 \
     procps \
     nano \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -f /etc/apt/apt.conf.d/01proxy
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/rathena
 

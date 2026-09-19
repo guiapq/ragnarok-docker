@@ -63,7 +63,6 @@ A stack é orquestrada via **Docker Compose** e composta por 6 microsserviços i
 | **`ragnabraza-cp`** | PHP 8.2 FPM + Nginx | `8000` | Painel de controle web: cadastro de contas, ranking de torneios MVP, speedrun e visualizador de personagens. |
 | **`ragnarok-db`** | MariaDB 10.11 | `3306` | Banco relacional com esquemas rAthena, tabelas de controle de contas e dados de torneio. |
 | **`ragnarok-phpmyadmin`**| phpMyAdmin oficial | `8080` | Interface gráfica para administração direta das tabelas do banco. |
-| **`ragnarok-apt-cache`** | apt-cacher-ng | `3142` (interno) | Cache local de pacotes Debian para permitir rebuilds de containers quase instantâneos. |
 
 ---
 
@@ -122,6 +121,8 @@ make up
 | `make down` | Para todos os containers do ecossistema |
 | `make logs` | Acompanha os logs ao vivo em tempo real |
 | `make ps` | Exibe o status e healthcheck de cada serviço |
+| `make prune` | Para a stack e limpa containers órfãos, builder cache e imagens sem tag |
+| `make clean-images` | Remove todas as imagens construídas do projeto para rebuild limpo do zero |
 
 ---
 
