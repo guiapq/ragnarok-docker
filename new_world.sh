@@ -53,8 +53,8 @@ echo "Log:  $LOG_FILE"
 echo "================================="
 
 echo
-echo "Parando servidor..."
-docker compose down || true
+echo "Parando servidor para regeneração do mundo..."
+docker compose stop rathena robrowser panel || true
 
 echo
 echo "Limpando mundo atual..."
@@ -75,12 +75,8 @@ echo "Executando randomizer..."
 bash scripts/randomize_world.sh
 
 echo
-echo "Rebuildando containers..."
-docker compose build
-
-echo
-echo "Subindo servidor..."
-docker compose up -d
+echo "Reiniciando serviços do jogo..."
+docker compose up -d rathena robrowser panel
 
 echo
 echo "Containers ativos:"

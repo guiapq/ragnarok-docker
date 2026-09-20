@@ -4,7 +4,7 @@ WORKDIR /opt
 
 RUN echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true
 
-RUN timeout 240 apk add --no-cache \
+RUN timeout 480 apk add --no-cache \
     git \
     nodejs \
     npm \
@@ -17,7 +17,7 @@ RUN timeout 180 npm install -g wsproxy http-server
 
 # baixar cliente web do fork com commit travado (suporta git local LAN)
 ARG ROBROWSER_REPO=https://github.com/guiapq/roBrowserLegacy.git
-ARG ROBROWSER_COMMIT=fd9183f
+ARG ROBROWSER_COMMIT=1433244
 RUN git config --global http.lowSpeedLimit 1000 \
     && git config --global http.lowSpeedTime 30 \
     && timeout 300 git clone ${ROBROWSER_REPO} /opt/roBrowserLegacy \
@@ -27,7 +27,7 @@ RUN git config --global http.lowSpeedLimit 1000 \
 WORKDIR /opt/roBrowserLegacy
 
 # instalar dependências
-RUN timeout 600 npm install
+RUN timeout 600 npm install --legacy-peer-deps || timeout 600 npm install --force
 
 # build
 RUN timeout 300 npm run build -- -O -T -H

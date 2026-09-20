@@ -70,7 +70,7 @@ services:
       context: ./docker/robrowser
       args:
         ROBROWSER_REPO: ${ROBROWSER_REPO:-https://github.com/guiapq/roBrowserLegacy.git}
-        ROBROWSER_COMMIT: ${ROBROWSER_COMMIT:-fd9183f}
+        ROBROWSER_COMMIT: ${ROBROWSER_COMMIT:-1433244}
     container_name: robrowser
     restart: unless-stopped
     env_file:
