@@ -55,22 +55,81 @@ BONUS_TRANSLATIONS = {
     r"bonus\s+bFlee,([-\d]+);": ("^008800Esquiva {val}^000000", "+"),
     r"bonus\s+bCritical,([-\d]+);": ("^FF0000Critico {val}^000000", "+"),
     r"bonus\s+bAspdRate,([-\d]+);": ("^FF8800Velocidade de Ataque {val}%^000000", "+"),
+    r"bonus\s+bMatkRate,([-\d]+);": ("^9900FFATQM {val}%^000000", "+"),
 
-    # Pontos de Vida / Mana
+    # Pontos de Vida / Mana / Custo
     r"bonus\s+bMaxHP,([-\d]+);": ("^FF0000HP Maximo {val}^000000", "+"),
     r"bonus\s+bMaxSP,([-\d]+);": ("^0000FFSP Maximo {val}^000000", "+"),
     r"bonus\s+bMaxHPrate,([-\d]+);": ("^FF0000HP Maximo {val}%^000000", "+"),
     r"bonus\s+bMaxSPrate,([-\d]+);": ("^0000FFSP Maximo {val}%^000000", "+"),
     r"bonus\s+bUseSPrate,([-\d]+);": ("^CC0000Consumo de SP {val}%^000000", "+"),
 
-    # Racas e Tamanhos
+    # Racas e Tamanhos (Dano)
     r"bonus2\s+bAddRace,RC_DemiHuman,([-\d]+);": ("^FF4400Dano contra Humanoides {val}%^000000", "+"),
+    r"bonus2\s+bAddRace,RC_Player,([-\d]+);": ("^FF4400Dano contra Jogadores {val}%^000000", "+"),
     r"bonus2\s+bAddRace,RC_Brute,([-\d]+);": ("^FF4400Dano contra Brutos {val}%^000000", "+"),
     r"bonus2\s+bAddRace,RC_Undead,([-\d]+);": ("^FF4400Dano contra Mortos-Vivos {val}%^000000", "+"),
     r"bonus2\s+bAddRace,RC_Demon,([-\d]+);": ("^FF4400Dano contra Demonios {val}%^000000", "+"),
+    r"bonus2\s+bAddRace,RC_Insect,([-\d]+);": ("^FF4400Dano contra Insetos {val}%^000000", "+"),
+    r"bonus2\s+bAddRace,RC_Fish,([-\d]+);": ("^FF4400Dano contra Peixes {val}%^000000", "+"),
+    r"bonus2\s+bAddRace,RC_Dragon,([-\d]+);": ("^FF4400Dano contra Dragoes {val}%^000000", "+"),
+    r"bonus2\s+bAddRace,RC_Plant,([-\d]+);": ("^FF4400Dano contra Plantas {val}%^000000", "+"),
+    r"bonus2\s+bAddRace,RC_Formless,([-\d]+);": ("^FF4400Dano contra Amorfo {val}%^000000", "+"),
+    r"bonus2\s+bAddRace,RC_Angel,([-\d]+);": ("^FF4400Dano contra Anjos {val}%^000000", "+"),
+    r"bonus2\s+bMagicAddRace,RC_DemiHuman,([-\d]+);": ("^FF4400Dano Magico contra Humanoides {val}%^000000", "+"),
+    r"bonus2\s+bMagicAddRace,RC_Player,([-\d]+);": ("^FF4400Dano Magico contra Jogadores {val}%^000000", "+"),
+
+    # Resistencia a Racas
+    r"bonus2\s+bSubRace,RC_DemiHuman,([-\d]+);": ("^008800Resistencia a Humanoides {val}%^000000", "+"),
+    r"bonus2\s+bSubRace,RC_Player,([-\d]+);": ("^008800Resistencia a Jogadores {val}%^000000", "+"),
+    r"bonus2\s+bSubRace,RC_Brute,([-\d]+);": ("^008800Resistencia a Brutos {val}%^000000", "+"),
+    r"bonus2\s+bSubRace,RC_Undead,([-\d]+);": ("^008800Resistencia a Mortos-Vivos {val}%^000000", "+"),
+    r"bonus2\s+bSubRace,RC_Demon,([-\d]+);": ("^008800Resistencia a Demonios {val}%^000000", "+"),
+    r"bonus2\s+bSubRace,RC_Angel,([-\d]+);": ("^008800Resistencia a Anjos {val}%^000000", "+"),
+
+    # Tamanhos
     r"bonus2\s+bAddSize,Size_Small,([-\d]+);": ("^FF4400Dano contra monstros Pequenos {val}%^000000", "+"),
     r"bonus2\s+bAddSize,Size_Medium,([-\d]+);": ("^FF4400Dano contra monstros Medios {val}%^000000", "+"),
     r"bonus2\s+bAddSize,Size_Large,([-\d]+);": ("^FF4400Dano contra monstros Grandes {val}%^000000", "+"),
+    r"bonus2\s+bSubSize,Size_Small,([-\d]+);": ("^008800Resistencia a Pequenos {val}%^000000", "+"),
+    r"bonus2\s+bSubSize,Size_Medium,([-\d]+);": ("^008800Resistencia a Medios {val}%^000000", "+"),
+    r"bonus2\s+bSubSize,Size_Large,([-\d]+);": ("^008800Resistencia a Grandes {val}%^000000", "+"),
+    r"bonus\s+bNoSizeFix;": ("^0000FFAnula penalidade de tamanho da arma^000000", ""),
+
+    # Propriedade Elemental da Arma
+    r"bonus\s+bAtkEle,Ele_Water;": ("^0000FFArma com Propriedade Agua^000000", ""),
+    r"bonus\s+bAtkEle,Ele_Earth;": ("^008800Arma com Propriedade Terra^000000", ""),
+    r"bonus\s+bAtkEle,Ele_Fire;": ("^FF0000Arma com Propriedade Fogo^000000", ""),
+    r"bonus\s+bAtkEle,Ele_Wind;": ("^008800Arma com Propriedade Vento^000000", ""),
+    r"bonus\s+bAtkEle,Ele_Poison;": ("^9900FFArma com Propriedade Veneno^000000", ""),
+    r"bonus\s+bAtkEle,Ele_Holy;": ("^FFD700Arma com Propriedade Sagrado^000000", ""),
+    r"bonus\s+bAtkEle,Ele_Dark;": ("^660066Arma com Propriedade Sombrio^000000", ""),
+    r"bonus\s+bAtkEle,Ele_Ghost;": ("^6666CCArma com Propriedade Fantasma^000000", ""),
+    r"bonus\s+bAtkEle,Ele_Undead;": ("^880000Arma com Propriedade Maldito^000000", ""),
+
+    # Resistencia Elemental
+    r"bonus\d*\s+bSubEle,Ele_Neutral,([-\d]+)[^;]*;": ("^008800Resistencia a Neutro {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Water,([-\d]+)[^;]*;": ("^008800Resistencia a Agua {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Earth,([-\d]+)[^;]*;": ("^008800Resistencia a Terra {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Fire,([-\d]+)[^;]*;": ("^008800Resistencia a Fogo {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Wind,([-\d]+)[^;]*;": ("^008800Resistencia a Vento {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Poison,([-\d]+)[^;]*;": ("^008800Resistencia a Veneno {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Holy,([-\d]+)[^;]*;": ("^008800Resistencia a Sagrado {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Dark,([-\d]+)[^;]*;": ("^008800Resistencia a Sombrio {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Ghost,([-\d]+)[^;]*;": ("^008800Resistencia a Fantasma {val}%^000000", "+"),
+    r"bonus\d*\s+bSubEle,Ele_Undead,([-\d]+)[^;]*;": ("^008800Resistencia a Maldito {val}%^000000", "+"),
+
+    # Utilidades e Efeitos Especiais
+    r"bonus\s+bUnbreakableWeapon;": ("^008800Arma Indestrutivel em batalha^000000", ""),
+    r"bonus\s+bUnbreakableArmor;": ("^008800Armadura Indestrutivel em batalha^000000", ""),
+    r"bonus\s+bUnbreakableGarment;": ("^008800Capa Indestrutivel em batalha^000000", ""),
+    r"bonus\s+bNoKnockback;": ("^008800Imune a empurrao (Knockback)^000000", ""),
+    r"bonus\s+bNoCastCancel;": ("^008800Conjuracao ininterrupta^000000", ""),
+    r"bonus\s+bSpeedRate,([-\d]+);": ("^008800Velocidade de Movimento {val}%^000000", "+"),
+    r"bonus\s+bDoubleRate,([-\d]+);": ("^FF0000Chance de Ataque Duplo {val}%^000000", "+"),
+    r"bonus\s+bSplashRange,([-\d]+);": ("^FF0000Ataque em Area (Splash)^000000", ""),
+    r"bonus\s+bHealPower,([-\d]+);": ("^008800Eficacia de Cura {val}%^000000", "+"),
+    r"bonus2\s+bAddClass,Class_All,([-\d]+);": ("^FF4400Dano fisico contra todos os alvos {val}%^000000", "+"),
 }
 
 # Tipos de equipamento no rAthena (mmo.hpp)
@@ -97,16 +156,19 @@ def parse_script_bonuses(script):
     lines = []
     for pattern, (template, sign) in BONUS_TRANSLATIONS.items():
         for match in re.finditer(pattern, script):
-            raw_val = match.group(1)
-            try:
-                num = int(raw_val)
-                if num > 0:
-                    val_str = f"+{num}"
-                else:
-                    val_str = str(num)
-                lines.append(template.format(val=val_str))
-            except ValueError:
-                lines.append(template.format(val=raw_val))
+            if match.groups():
+                raw_val = match.group(1)
+                try:
+                    num = int(raw_val)
+                    if num > 0:
+                        val_str = f"+{num}"
+                    else:
+                        val_str = str(num)
+                    lines.append(template.format(val=val_str))
+                except ValueError:
+                    lines.append(template.format(val=raw_val))
+            else:
+                lines.append(template)
     return lines
 
 
@@ -152,9 +214,9 @@ def load_ptbr_names():
 
 def main():
     env = load_env()
-    seed = env.get("WORLD_SEED", "za2warudo")
-    root = env.get("RATHENA_ROOT", "data")
-    item_db_rel = env.get("ITEM_DB_PATH", "db/pre-re/item_db.txt")
+    seed = os.environ.get("WORLD_SEED") or env.get("WORLD_SEED", "zawarudo")
+    root = os.environ.get("RATHENA_ROOT") or env.get("RATHENA_ROOT", "data")
+    item_db_rel = os.environ.get("ITEM_DB_PATH") or env.get("ITEM_DB_PATH", "db/pre-re/item_db.txt")
 
     db_path = os.path.join(root, item_db_rel)
     if not os.path.isfile(db_path):
@@ -169,6 +231,8 @@ def main():
         os.path.join(root, "System", "itemInfo.lua"),
         os.path.join("client", "System", "itemInfo.lua")
     ]
+    if os.environ.get("OUTPUT_ITEM_INFO"):
+        output_files.append(os.environ["OUTPUT_ITEM_INFO"])
 
     raw_res_map = load_raw_official_resource_names()
     ptbr_names = load_ptbr_names()
@@ -240,13 +304,43 @@ def main():
             bonus_lines = parse_script_bonuses(script)
             is_gear = item_type in (4, 5)
 
+            try:
+                buy_price = int(cols[4]) if len(cols) > 4 and cols[4].isdigit() else 0
+            except ValueError:
+                buy_price = 0
+
             desc_lines = []
             if is_gear:
-                desc_lines.extend([
-                    f"^FF8000[Item Procedural - Seed: {seed}]^000000",
-                    "Forjado com energias anomalas desta rodada.",
-                    "^777777----------------------------------------^000000"
-                ])
+                if item_id in (1530, 2383, 2410, 2541, 2629, 2630):
+                    desc_lines.extend([
+                        "^FFD700[Artefato Divino Lendario]^000000",
+                        "Forjado com os poderes dos deuses no inicio das eras.",
+                        "^777777----------------------------------------^000000"
+                    ])
+                elif buy_price >= 1000000:
+                    desc_lines.extend([
+                        "^9900FF[Tier 4 - Reliquia Sagrada]^000000",
+                        "Obra-prima impecavel. Maximo poder sem debuffs.",
+                        "^777777----------------------------------------^000000"
+                    ])
+                elif buy_price >= 200000:
+                    desc_lines.extend([
+                        "^FF4500[Tier 3 - Poder Proibido]^000000",
+                        "Poder extraordinario equilibrado por penalidades severas.",
+                        "^777777----------------------------------------^000000"
+                    ])
+                elif buy_price >= 30000:
+                    desc_lines.extend([
+                        "^0088FF[Tier 2 - Aprimorado]^000000",
+                        "Equipamento avancado para aventureiros experientes.",
+                        "^777777----------------------------------------^000000"
+                    ])
+                else:
+                    desc_lines.extend([
+                        "^00AA00[Tier 1 - Basico]^000000",
+                        "Equipamento inicial confiavel e acessivel.",
+                        "^777777----------------------------------------^000000"
+                    ])
                 if bonus_lines:
                     desc_lines.append("^0000CDPropriedades Especiais:^000000")
                     for b in bonus_lines:

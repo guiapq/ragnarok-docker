@@ -82,7 +82,9 @@ services:
       - rathena
     volumes:
       - ./data:/opt/roBrowserLegacy/data
-      - ./client/System:/opt/roBrowserLegacy/System:ro
+      - ./client/System:/opt/roBrowserLegacy/System
+      - ./tools:/opt/tools:ro
+      - ./docker/robrowser/entrypoint.sh:/entrypoint.sh:ro
       - ./docker/robrowser/liblua5.1.wasm:/opt/roBrowserLegacy/liblua5.1.wasm:ro
       - ./docker/robrowser/liblua5.1.wasm:/opt/roBrowserLegacy/src/Vendors/liblua5.1.wasm:ro
       - ./docker/robrowser/Config.local.template.js:/opt/Config.local.template.js:ro

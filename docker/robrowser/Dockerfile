@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nano \
     curl \
     gettext-base \
+    python3 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN timeout 180 npm install -g wsproxy http-server
@@ -35,11 +36,16 @@ RUN timeout 300 npm run build -- -O -T -H
 # copiar build final
 RUN cp -r dist/Web/* .
 
-# copiar template e patcher
+# link retrocompatibilidade para FileManager.getHTTP (/client/...)
+RUN ln -sf . /opt/roBrowserLegacy/client
+
+# copiar template, patcher e entrypoint
 COPY Config.local.template.js /opt/Config.local.template.js
 COPY patch_online.js /opt/patch_online.js
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080 5999
 
-CMD bash -c "cd /opt/roBrowserLegacy && node /opt/patch_online.js /opt/roBrowserLegacy/Online.js 2>/dev/null || true && export RO_REMOTE_CLIENT=\"\${RO_REMOTE_CLIENT:-}\" && envsubst < /opt/Config.local.template.js > Config.local.js && wsproxy -a ragnarok-server:6900,ragnarok-server:6121,ragnarok-server:5121 & http-server -p 8080 -a 0.0.0.0 --cors -c-1"
+CMD ["/entrypoint.sh"]
 

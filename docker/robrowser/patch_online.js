@@ -267,4 +267,106 @@ for (const [oldStr, newStr] of [
 }
 
 fs.writeFileSync(onlinePath, content, 'utf8');
+
+// Patch ThreadEventHandler.js para desativar cache local no itemInfo.lua
+const threadPath = onlinePath.replace('Online.js', 'ThreadEventHandler.js');
+if (fs.existsSync(threadPath)) {
+	console.log(`Patching ${threadPath}...`);
+	let threadContent = fs.readFileSync(threadPath, 'utf8');
+	let threadPatches = 0;
+
+	// 1. Bypass FileSystem.getFile for itemInfo
+	const targetGet = `		FileSystem.getFile(filename, function onFound(file) {
+			const reader = new FileReader();
+			reader.onloadend = function onLoad(event) {
+				callback(event.target.result);
+			};
+			reader.readAsArrayBuffer(file);
+		}, function onNotFound() {
+			const path = filename.replace(/\\//g, "\\\\");
+			const fileList = FileManager.gameFiles;
+			const count = fileList.length;
+			for (let i = 0; i < count; ++i) if (fileList[i].getFile(path, callback)) return;
+			FileManager.getHTTP(filename, callback);
+		});`;
+
+	const replaceGet = `		const _skipFs = /itemInfo/i.test(filename);
+		const _onNotFound = function() {
+			const path = filename.replace(/\\//g, "\\\\");
+			const fileList = FileManager.gameFiles;
+			const count = fileList.length;
+			for (let i = 0; i < count; ++i) if (fileList[i].getFile(path, callback)) return;
+			FileManager.getHTTP(filename, callback);
+		};
+		if (!_skipFs) {
+			FileSystem.getFile(filename, function onFound(file) {
+				const reader = new FileReader();
+				reader.onloadend = function onLoad(event) {
+					callback(event.target.result);
+				};
+				reader.readAsArrayBuffer(file);
+			}, _onNotFound);
+		} else {
+			_onNotFound();
+		}`;
+
+	for (const [oldStr, newStr] of [
+		[targetGet.replace(/\n/g, '\r\n'), replaceGet.replace(/\n/g, '\r\n')],
+		[targetGet, replaceGet]
+	]) {
+		if (threadContent.includes(oldStr)) {
+			threadContent = threadContent.replace(oldStr, newStr);
+			threadPatches++;
+			console.log('✓ Thread Patch 1 (itemInfo bypass FileSystem.getFile) applied');
+			break;
+		}
+	}
+
+	// 2. Fetch with cache: no-store and do not save itemInfo to local FileSystem
+	const targetHttp = `		if (typeof fetch !== "undefined") {
+			fetch(url).then(function(response) {
+				if (!response.ok) throw new Error("HTTP " + response.status);
+				if ((response.headers.get("content-type") || "").indexOf("text/html") !== -1) throw new Error("Received HTML instead of binary data (likely 404 page)");
+				return response.arrayBuffer();
+			}).then((buffer) => {
+				callback(buffer);
+				FileSystem.saveFile(filename, buffer);
+			}).catch(() => {
+				callback(null, "Can't get file");
+			});
+			return;
+		}`;
+
+	const replaceHttp = `		if (typeof fetch !== "undefined") {
+			fetch(url, { cache: "no-store" }).then(function(response) {
+				if (!response.ok) throw new Error("HTTP " + response.status);
+				if ((response.headers.get("content-type") || "").indexOf("text/html") !== -1) throw new Error("Received HTML instead of binary data (likely 404 page)");
+				return response.arrayBuffer();
+			}).then((buffer) => {
+				callback(buffer);
+				if (!/itemInfo/i.test(filename)) FileSystem.saveFile(filename, buffer);
+			}).catch(() => {
+				callback(null, "Can't get file");
+			});
+			return;
+		}`;
+
+	for (const [oldStr, newStr] of [
+		[targetHttp.replace(/\n/g, '\r\n'), replaceHttp.replace(/\n/g, '\r\n')],
+		[targetHttp, replaceHttp]
+	]) {
+		if (threadContent.includes(oldStr)) {
+			threadContent = threadContent.replace(oldStr, newStr);
+			threadPatches++;
+			console.log('✓ Thread Patch 2 (fetch no-store & itemInfo no FileSystem.saveFile) applied');
+			break;
+		}
+	}
+
+	if (threadPatches > 0) {
+		fs.writeFileSync(threadPath, threadContent, 'utf8');
+		console.log(`ThreadEventHandler patched: ${threadPatches} patches applied.`);
+	}
+}
+
 console.log(`Done. Total patches applied: ${patches}`);
