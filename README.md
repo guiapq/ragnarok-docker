@@ -86,7 +86,7 @@ make doctor
 # 2. Inicialize o registry local de imagens
 make registry-up
 
-# 3. Compile as imagens otimizadas com salvaguardas de rede
+# 3. Compile as imagens otimizadas (executa make prepare automaticamente antes da build)
 make build
 
 # 4. Publique as imagens no registry local
@@ -95,9 +95,16 @@ make push-images
 # 5. Gere o mundo procedural com a semente desejada
 make world SEED=zawarudo
 
-# 6. Inicialize a stack completa
+# 6. Inicialize a stack completa (executa make prepare automaticamente se for a 1ª inicialização)
 make up
 ```
+
+> [!NOTE]
+> **Auto-Preparação no Primeiro Boot (`make prepare`):**
+> Você não precisa mais baixar bases ou copiar pastas manualmente após um `git clone`. Ao rodar `make`, `make up` ou `make build`, o sistema detecta automaticamente se o ambiente não foi preparado e:
+> 1. Cria `.env` e `.env.rando` a partir dos templates `.example` se ainda não existirem.
+> 2. Baixa as bases do rAthena (`data_base`) e roBrowser (`robrowser_base`), testando a conectividade com o servidor Git local (**momo**) e fazendo fallback transparente para o GitHub se estiver fora da LAN.
+> 3. Popula a base de runtime em `data/` (`db`, `npc`, `conf`) via [copia-base.sh](file:///home/luiz/Projetos/ragnarok-docker/copia-base.sh), garantindo que os volumes montados nunca fiquem vazios no container.
 
 > [!TIP]
 > **Deploy Distribuído (Host de Build ➔ Host de Produção):**
@@ -112,12 +119,13 @@ make up
 
 | Comando | Descrição |
 | :--- | :--- |
-| `make doctor` | Verifica dependências, arquivos `.env` e integridade das pastas base |
+| `make prepare` | Prepara o ambiente automaticamente: baixa bases (rAthena/roBrowser via momo/GitHub), gera `.env` e popula `data/` |
+| `make doctor` | Verifica dependências, arquivos `.env`, integridade das bases e runtime `data/db/map_index.txt` |
 | `make registry-up` | Inicializa o container de Docker Registry local (`:5000`) |
-| `make build` | Compila os containers (`rathena`, `robrowser`, `panel`) com timeouts estritos |
+| `make build` | Prepara o ambiente e compila os containers (`rathena`, `robrowser`, `panel`) com timeouts estritos |
 | `make push-images` | Tagueia e envia as imagens prontas para o registry (`REGISTRY=host:5000`) |
 | `make world SEED=x` | Recria o mundo a partir da base imutável e aplica a seed procedural |
-| `make up` | Inicia todos os microsserviços em segundo plano |
+| `make up` | Prepara pré-requisitos pendentes e inicia todos os microsserviços em segundo plano |
 | `make down` | Para todos os containers do ecossistema |
 | `make logs` | Acompanha os logs ao vivo em tempo real |
 | `make ps` | Exibe o status e healthcheck de cada serviço |
@@ -134,11 +142,14 @@ Após subir a stack (`make up`):
 
 ---
 
-### 4. Deploy Direto Alternativo (Docker Compose puro)
-Caso prefira não utilizar o Makefile:
+### 4. Inicialização Simples (Zero Config)
+Em uma instalação nova, basta rodar diretamente:
 ```bash
-docker compose up -d --build
-./new_world.sh zawarudo --force
+make
+```
+O Makefile executará a preparação completa (`make prepare`) e iniciará os serviços (`docker compose up -d`). Para gerar uma seed procedural em seguida:
+```bash
+make world SEED=zawarudo
 ```
 
 ---

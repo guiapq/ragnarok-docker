@@ -34,28 +34,26 @@ git clone https://SEU_REPOSITORIO/ragnarok-docker.git
 cd ragnarok-docker
 ```
 
-## 2. Baixar a base limpa do rAthena
+## 2. Preparação do ambiente (Automática)
+
+Você pode preparar tudo com um único comando:
 
 ```bash
-./setup-rathena-data_base-external.sh
+make prepare
 ```
+> O script detecta automaticamente se o servidor Git local (**momo**) está disponível para clone rápido ou se deve usar o GitHub, cria os arquivos `.env` se não existirem e popula a base em `data/`.
+> *(Nota: Rodar `make` ou `make up` já dispara o `make prepare` automaticamente caso seja a primeira vez).*
 
-## 3. Criar a base local utilizada pelo servidor
-
-```bash
-./copia-base.sh
-```
-
-## 4. Validar ambiente
+## 3. Validar ambiente
 
 ```bash
 make doctor
 ```
 
-## 5. Subir o servidor
+## 4. Subir o servidor
 
 ```bash
-docker compose up -d
+make up
 ```
 
 ## 6. Gerar um mundo procedural

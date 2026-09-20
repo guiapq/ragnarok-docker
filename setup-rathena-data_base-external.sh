@@ -2,52 +2,66 @@
 
 set -e
 
+FORCE=false
+if [ "${1:-}" = "--force" ]; then
+    FORCE=true
+fi
+
+# Se já existe e está íntegro, pula download a não ser que --force seja passado
+if [ "$FORCE" = false ] && [ -f "data_base/db/map_index.txt" ] && [ -d "data_base/.git" ]; then
+    echo "=== [OK] Base data_base (rAthena) já está instalada e pronta ==="
+    exit 0
+fi
+
 echo "================================="
-echo "Baixando base limpa do rAthena (LOCKED)"
+echo "Preparando base do rAthena (data_base)"
 echo "================================="
 
-REPO="https://github.com/guiapq/rathena.git"
-COMMIT="ac46920e73819662811573253d9b22592e8ad985"
+# Carrega configurações do .env caso existam
+if [ -f .env ]; then
+    export $(grep -E '^(RATHENA_REPO|RATHENA_COMMIT)=' .env | xargs) 2>/dev/null || true
+fi
 
-# limpa base anterior
+MOMO_REPO="${RATHENA_REPO:-http://192.168.0.128:3000/guiapq/rathena.git}"
+GITHUB_REPO="https://github.com/guiapq/rathena.git"
+COMMIT="${RATHENA_COMMIT:-ac46920e73819662811573253d9b22592e8ad985}"
+
+# Detecta se momo está acessível (timeout de 2 segundos)
+TARGET_REPO="$GITHUB_REPO"
+echo -n "Testando conectividade com o repositório rAthena local (momo)... "
+if timeout 2 git ls-remote --exit-code -h "$MOMO_REPO" >/dev/null 2>&1; then
+    echo "[OK: MOMO DETECTADA]"
+    TARGET_REPO="$MOMO_REPO"
+else
+    echo "[INDISPONÍVEL: Usando GitHub]"
+    TARGET_REPO="$GITHUB_REPO"
+fi
+
+echo "Alvo: $TARGET_REPO (Commit: $COMMIT)"
+
 rm -rf data_base
-
-echo
-echo "Clonando repositório (shallow fetch para commit travado)..."
 mkdir -p data_base
 cd data_base
 git init
-git remote add origin "$REPO"
-git fetch --depth 1 origin "$COMMIT"
+git remote add origin "$TARGET_REPO"
+
+echo "Baixando base do rAthena..."
+if ! git fetch --depth 1 origin "$COMMIT" 2>/dev/null; then
+    echo "Commit específico falhou no fetch shallow direto, tentando branch master..."
+    git fetch --depth 1 origin master
+fi
 git checkout -B master FETCH_HEAD
 
-echo
-echo "================================="
-echo "Base instalada com sucesso"
-echo "================================="
+cd ..
 
-echo
-echo "HEAD atual:"
-git rev-parse HEAD
-
-echo
 echo "================================="
-echo "Verificando estrutura esperada"
+echo "Verificando estrutura rAthena"
 echo "================================="
-
-if [ -f db/mob_db.txt ] || [ -f db/re/mob_db.txt ]; then
-    echo "[OK] mob_db.txt encontrado"
+if [ -f data_base/db/map_index.txt ]; then
+    echo "[OK] db/map_index.txt encontrado"
 else
-    echo "[ERRO] mob_db.txt NÃO encontrado"
+    echo "[ERRO CRÍTICO] db/map_index.txt NÃO encontrado em data_base!"
+    exit 1
 fi
 
-if [ -f db/item_db.txt ] || [ -f db/re/item_db.txt ]; then
-    echo "[OK] item_db.txt encontrado"
-else
-    echo "[ERRO] item_db.txt NÃO encontrado"
-fi
-
-echo
-echo "================================="
-echo "Setup concluído"
-echo "================================="
+echo "Setup de data_base concluído com sucesso."

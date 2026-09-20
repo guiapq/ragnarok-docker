@@ -6,15 +6,18 @@ FORCE ?= --force
 REGISTRY ?= 127.0.0.1:5000
 TAG ?= v2
 
-.PHONY: up down world logs doctor ps build registry-up registry-down tag-images push-images clean-images prune
+.PHONY: prepare up down world logs doctor ps build registry-up registry-down tag-images push-images clean-images prune
 
-up:
+prepare:
+	@./scripts/prepare.sh
+
+up: prepare
 	docker compose up -d
 
 down:
 	docker compose down
 
-build:
+build: prepare
 	docker compose build
 
 registry-up:
@@ -53,6 +56,7 @@ doctor:
 	@test -f .env || (echo ".env ausente" && exit 1)
 	@test -f .env.rando || (echo ".env.rando ausente" && exit 1)
 	@test -d data_base || (echo "data_base ausente" && exit 1)
+	@test -f data/db/map_index.txt || (echo "data/db/map_index.txt ausente (execute: make prepare)" && exit 1)
 	@echo "Ambiente básico OK"
 
 clean-images:

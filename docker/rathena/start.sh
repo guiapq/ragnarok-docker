@@ -16,6 +16,28 @@ if [ ! -f "$CONF_DIR/char_athena.conf" ]; then
     fi
 fi
 
+DB_DIR="/opt/rathena/db"
+if [ ! -f "$DB_DIR/map_index.txt" ]; then
+    echo "=== [AVISO] db/map_index.txt não encontrado em $DB_DIR ==="
+    if [ -d "/opt/rathena/db.default" ]; then
+        echo "Restaurando db padrão de /opt/rathena/db.default..."
+        cp -r /opt/rathena/db.default/* "$DB_DIR/"
+    else
+        echo "[ERRO CRÍTICO] Diretório $DB_DIR está vazio!"
+    fi
+fi
+
+NPC_DIR="/opt/rathena/npc"
+if [ ! -f "$NPC_DIR/scripts_athena.conf" ] && [ ! -f "$NPC_DIR/pre-re/scripts_main.conf" ]; then
+    echo "=== [AVISO] scripts de npc não encontrados em $NPC_DIR ==="
+    if [ -d "/opt/rathena/npc.default" ]; then
+        echo "Restaurando npc padrão de /opt/rathena/npc.default..."
+        cp -r /opt/rathena/npc.default/* "$NPC_DIR/"
+    else
+        echo "[ERRO CRÍTICO] Diretório $NPC_DIR está vazio!"
+    fi
+fi
+
 cd $CONF_DIR
 
 RO_IP="${RO_IP:-127.0.0.1}"
