@@ -35,10 +35,11 @@ RUN timeout 300 npm run build -- -O -T -H
 # copiar build final
 RUN cp -r dist/Web/* .
 
-# copiar template
+# copiar template e patcher
 COPY Config.local.template.js /opt/Config.local.template.js
+COPY patch_online.js /opt/patch_online.js
 
 EXPOSE 8080 5999
 
-CMD bash -c "cd /opt/roBrowserLegacy && export RO_REMOTE_CLIENT=\"\${RO_REMOTE_CLIENT:-}\" && envsubst < /opt/Config.local.template.js > Config.local.js && wsproxy -a ragnarok-server:6900,ragnarok-server:6121,ragnarok-server:5121 & http-server -p 8080 -a 0.0.0.0 --cors -c-1"
+CMD bash -c "cd /opt/roBrowserLegacy && node /opt/patch_online.js /opt/roBrowserLegacy/Online.js 2>/dev/null || true && export RO_REMOTE_CLIENT=\"\${RO_REMOTE_CLIENT:-}\" && envsubst < /opt/Config.local.template.js > Config.local.js && wsproxy -a ragnarok-server:6900,ragnarok-server:6121,ragnarok-server:5121 & http-server -p 8080 -a 0.0.0.0 --cors -c-1"
 

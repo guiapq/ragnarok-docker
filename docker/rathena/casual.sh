@@ -69,6 +69,50 @@ echo "PIN config atual:"
 grep pincode $RATHENA/conf/char_athena.conf || true
 
 #################################
+# 4b - Grupo 6 (Tester) para contas de teste
+#################################
+
+if ! grep -q "id: 6" "$RATHENA/conf/groups.conf" 2>/dev/null; then
+    echo "=== Adicionando Grupo 6 (Tester) ao groups.conf ==="
+    sed -i '/id: 99/i \
+{\
+\tid: 6\
+\tname: "Tester"\
+\tinherit: ( "Support" )\
+\tlevel: 1\
+\tcommands: {\
+\t\t/* Movimentação */\
+\t\tgo: true\
+\t\twarp: true\
+\t\tjump: true\
+\t\t/* Itens & Status */\
+\t\titem: [true, true]\
+\t\tzeny: true\
+\t\theal: [true, true]\
+\t\talive: true\
+\t\t/* Classe & Skills */\
+\t\tjobchange: true\
+\t\tallskill: true\
+\t\tskpoint: true\
+\t\t/* Conveniência */\
+\t\tspeed: true\
+\t\tstorage: true\
+\t\tnoks: true\
+\t\t/* Info */\
+\t\twhere: true\
+\t\tstats: [true, true]\
+\t}\
+\tlog_commands: true\
+\tpermissions: {\
+\t\tcan_trade: true\
+\t\tcan_party: true\
+\t\tany_warp: true\
+\t}\
+},\
+' "$RATHENA/conf/groups.conf" || true
+fi
+
+#################################
 # 5 - starter items (Leves, sem sobrepeso para o Aprendiz)
 #################################
 

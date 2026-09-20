@@ -99,6 +99,13 @@ CREATE TABLE IF NOT EXISTS event_mvp_kills (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 " 2>/dev/null || true
 
+# Garantir compatibilidade do schema da tabela char
+mysql -h "$DB_HOST" -P "$DB_PORT" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "ALTER TABLE \`char\` MODIFY \`settings\` text NOT NULL DEFAULT '';" 2>/dev/null || true
+
+# Limpar sessões fantasmas/travadas no boot
+echo "=== Limpando status de sessões anteriores ==="
+mysql -h "$DB_HOST" -P "$DB_PORT" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "UPDATE \`char\` SET \`online\` = 0;" 2>/dev/null || true
+
 # 2. Provisionar conta de Administrador GM fixa (roadmin, roadmin)
 echo "=== Provisionando conta de Administrador GM fixa (roadmin) ==="
 mysql -h "$DB_HOST" -P "$DB_PORT" -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "

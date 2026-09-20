@@ -3,13 +3,16 @@
 tools/generate_item_info_lua.py
 
 Gera System/itemInfo.lua compatível com o roBrowser a partir do item_db.txt
-do rAthena, traduzindo bônus procedurais e atributos gerados pela seed
-para descrições legíveis e ricas em cores no client web.
+do rAthena e do mapeamento de recursos oficiais, traduzindo bônus procedurais
+e atributos gerados pela seed para descrições ricas, sem mojibake, e com
+sprites devidamente mapeados para o GRF.
 """
 
+import json
 import os
 import re
 import sys
+import unicodedata
 
 
 def load_env():
@@ -23,13 +26,22 @@ def load_env():
     return env
 
 
+def strip_accents(s):
+    """Remove acentos para garantir renderização limpa e sem mojibake no client."""
+    if not s:
+        return ""
+    s = s.replace("ç", "c").replace("Ç", "C")
+    nfkd = unicodedata.normalize("NFKD", s)
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
+
+
 # Dicionário de tradução de bônus do rAthena para descrições formatadas em cores do Ragnarok
 BONUS_TRANSLATIONS = {
     # Atributos Principais
-    r"bonus\s+bStr,([-\d]+);": ("^008800Força {val}^000000", "+"),
+    r"bonus\s+bStr,([-\d]+);": ("^008800Forca {val}^000000", "+"),
     r"bonus\s+bAgi,([-\d]+);": ("^008800Agilidade {val}^000000", "+"),
     r"bonus\s+bVit,([-\d]+);": ("^008800Vitalidade {val}^000000", "+"),
-    r"bonus\s+bInt,([-\d]+);": ("^008800Inteligência {val}^000000", "+"),
+    r"bonus\s+bInt,([-\d]+);": ("^008800Inteligencia {val}^000000", "+"),
     r"bonus\s+bDex,([-\d]+);": ("^008800Destreza {val}^000000", "+"),
     r"bonus\s+bLuk,([-\d]+);": ("^008800Sorte {val}^000000", "+"),
     r"bonus\s+bAllStats,([-\d]+);": ("^008800Todos os Atributos {val}^000000", "+"),
@@ -39,50 +51,40 @@ BONUS_TRANSLATIONS = {
     r"bonus\s+bMatk,([-\d]+);": ("^9900FFATQM {val}^000000", "+"),
     r"bonus\s+bDef,([-\d]+);": ("^000088DEF {val}^000000", "+"),
     r"bonus\s+bMdef,([-\d]+);": ("^9900FFDEFM {val}^000000", "+"),
-    r"bonus\s+bHit,([-\d]+);": ("^0000FFPrecisão {val}^000000", "+"),
+    r"bonus\s+bHit,([-\d]+);": ("^0000FFPrecisao {val}^000000", "+"),
     r"bonus\s+bFlee,([-\d]+);": ("^008800Esquiva {val}^000000", "+"),
-    r"bonus\s+bCritical,([-\d]+);": ("^FF0000Crítico {val}^000000", "+"),
+    r"bonus\s+bCritical,([-\d]+);": ("^FF0000Critico {val}^000000", "+"),
     r"bonus\s+bAspdRate,([-\d]+);": ("^FF8800Velocidade de Ataque {val}%^000000", "+"),
 
     # Pontos de Vida / Mana
-    r"bonus\s+bMaxHP,([-\d]+);": ("^FF0000HP Máximo {val}^000000", "+"),
-    r"bonus\s+bMaxSP,([-\d]+);": ("^0000FFSP Máximo {val}^000000", "+"),
-    r"bonus\s+bMaxHPrate,([-\d]+);": ("^FF0000HP Máximo {val}%^000000", "+"),
-    r"bonus\s+bMaxSPrate,([-\d]+);": ("^0000FFSP Máximo {val}%^000000", "+"),
+    r"bonus\s+bMaxHP,([-\d]+);": ("^FF0000HP Maximo {val}^000000", "+"),
+    r"bonus\s+bMaxSP,([-\d]+);": ("^0000FFSP Maximo {val}^000000", "+"),
+    r"bonus\s+bMaxHPrate,([-\d]+);": ("^FF0000HP Maximo {val}%^000000", "+"),
+    r"bonus\s+bMaxSPrate,([-\d]+);": ("^0000FFSP Maximo {val}%^000000", "+"),
     r"bonus\s+bUseSPrate,([-\d]+);": ("^CC0000Consumo de SP {val}%^000000", "+"),
 
-    # Raças e Tamanhos
+    # Racas e Tamanhos
     r"bonus2\s+bAddRace,RC_DemiHuman,([-\d]+);": ("^FF4400Dano contra Humanoides {val}%^000000", "+"),
     r"bonus2\s+bAddRace,RC_Brute,([-\d]+);": ("^FF4400Dano contra Brutos {val}%^000000", "+"),
     r"bonus2\s+bAddRace,RC_Undead,([-\d]+);": ("^FF4400Dano contra Mortos-Vivos {val}%^000000", "+"),
-    r"bonus2\s+bAddRace,RC_Demon,([-\d]+);": ("^FF4400Dano contra Demônios {val}%^000000", "+"),
+    r"bonus2\s+bAddRace,RC_Demon,([-\d]+);": ("^FF4400Dano contra Demonios {val}%^000000", "+"),
     r"bonus2\s+bAddSize,Size_Small,([-\d]+);": ("^FF4400Dano contra monstros Pequenos {val}%^000000", "+"),
-    r"bonus2\s+bAddSize,Size_Medium,([-\d]+);": ("^FF4400Dano contra monstros Médios {val}%^000000", "+"),
+    r"bonus2\s+bAddSize,Size_Medium,([-\d]+);": ("^FF4400Dano contra monstros Medios {val}%^000000", "+"),
     r"bonus2\s+bAddSize,Size_Large,([-\d]+);": ("^FF4400Dano contra monstros Grandes {val}%^000000", "+"),
-}
-
-# Mapeamento de sprites conhecidos comuns para itens que costumam ser modificados ou injetados
-RESOURCE_NAME_MAP = {
-    2214: "토끼귀머리띠",   # Bunny Band
-    2501: "머플러",        # Muffler
-    2401: "슈즈",          # Shoes
-    2828: "클립",          # Upg Clip
-    2829: "클립",          # Greed Clip
-    29000: "메달",         # Medal
 }
 
 # Tipos de equipamento no rAthena (mmo.hpp)
 ITEM_TYPES = {
-    0: "Consumível",
-    2: "Consumível",
+    0: "Consumivel",
+    2: "Consumivel",
     3: "Item Etc",
     4: "Armadura / Equipamento",
     5: "Arma",
     6: "Carta",
     7: "Ovo de Mascote",
     8: "Equipamento de Mascote",
-    10: "Munição",
-    11: "Consumível",
+    10: "Municao",
+    11: "Consumivel",
     12: "Equipamento Sombrio",
 }
 
@@ -113,31 +115,46 @@ def escape_lua_string(s):
     return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
 
 
-def get_official_item_ids():
-    """Lê os IDs já presentes no itemInfo.lub compilado oficial."""
-    lub_paths = ["client/System/itemInfo.lub", "System/itemInfo.lub"]
-    for lp in lub_paths:
-        if os.path.isfile(lp):
-            import struct
-            ids = set()
-            with open(lp, "rb") as f:
-                data = f.read()
-            p = 0
-            while p < len(data) - 9:
-                if data[p] == 3:
-                    val = struct.unpack("<d", data[p+1:p+9])[0]
-                    if 0 < val < 50000 and val == int(val):
-                        ids.add(int(val))
-                p += 1
-            return ids
-    return set()
+def format_resource_name(raw_res):
+    """Retorna a string Lua para o resourceName correspondente ao índice do GRF.
+    Os nomes no GRF são decodificados pelo roBrowser via smartDecode (fallback windows-1252).
+    Portanto, convertendo os bytes brutos para a string windows-1252 e codificando
+    em UTF-8 para o wasmoon, o roBrowser recebe exatamente a string que casa com a tabela do GRF.
+    """
+    if not raw_res:
+        return '""'
+    raw_bytes = raw_res.encode('latin1')
+    try:
+        js_str = raw_bytes.decode('windows-1252')
+    except Exception:
+        js_str = raw_bytes.decode('latin1')
+    utf8_bytes = js_str.encode('utf-8')
+    escaped = "".join(f"\\{b:03d}" for b in utf8_bytes)
+    return f'"{escaped}"'
+
+
+def load_raw_official_resource_names():
+    """Carrega official_resource_names.json preservando os bytes brutos latin1."""
+    res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "official_resource_names.json")
+    if not os.path.isfile(res_path):
+        return {}
+    with open(res_path, "r", encoding="latin1") as f:
+        return json.load(f)
+
+
+def load_ptbr_names():
+    ptbr_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "valid_ptbr_items.json")
+    if os.path.isfile(ptbr_path):
+        with open(ptbr_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
 
 
 def main():
     env = load_env()
-    seed = env.get("WORLD_SEED", "default")
+    seed = env.get("WORLD_SEED", "za2warudo")
     root = env.get("RATHENA_ROOT", "data")
-    item_db_rel = env.get("ITEM_DB_PATH", "db/re/item_db.txt")
+    item_db_rel = env.get("ITEM_DB_PATH", "db/pre-re/item_db.txt")
 
     db_path = os.path.join(root, item_db_rel)
     if not os.path.isfile(db_path):
@@ -145,28 +162,24 @@ def main():
         if os.path.isfile(fallback):
             db_path = fallback
         else:
-            fallback_prere = os.path.join(root, "db/pre-re/item_db.txt")
-            if os.path.isfile(fallback_prere):
-                db_path = fallback_prere
-            else:
-                print(f"[ERRO] Base de itens não encontrada em {db_path}")
-                sys.exit(1)
+            print(f"[ERRO] Base de itens não encontrada em {db_path}")
+            sys.exit(1)
 
     output_files = [
         os.path.join(root, "System", "itemInfo.lua"),
         os.path.join("client", "System", "itemInfo.lua")
     ]
 
-    official_ids = get_official_item_ids()
+    raw_res_map = load_raw_official_resource_names()
+    ptbr_names = load_ptbr_names()
+
     print(f"Lendo base de itens de: {db_path}")
-    print(f"Itens oficiais conhecidos no lub: {len(official_ids)}")
+    print(f"Recursos oficiais mapeados: {len(raw_res_map)}")
+    print(f"Nomes em Portugues carregados: {len(ptbr_names)}")
     print(f"Seed ativa: {seed}")
 
-    processed_count = 0
-    customized_count = 0
-    missing_count = 0
-
-    lua_entries = []
+    procedural_entries = []
+    normal_entries = []
 
     with open(db_path, "r", encoding="latin-1", errors="ignore") as f:
         for line in f:
@@ -174,7 +187,6 @@ def main():
             if not line_str or line_str.startswith("//"):
                 continue
 
-            # rAthena item_db CSV: ID,AegisName,Name,Type,Buy,Sell,Weight,ATK,DEF,Range,Slots,Job,Upper,Gender,Loc,wLV,eLV,Refineable,View,{ Script }
             if "{" in line_str:
                 before_script, rest = line_str.split("{", 1)
                 script = rest.split("}", 1)[0].strip()
@@ -192,7 +204,7 @@ def main():
                 continue
 
             aegis_name = cols[1] if len(cols) > 1 else f"Item_{item_id}"
-            display_name = cols[2] if len(cols) > 2 else aegis_name
+            csv_display_name = cols[2] if len(cols) > 2 else aegis_name
             try:
                 item_type = int(cols[3])
             except (ValueError, IndexError):
@@ -206,38 +218,30 @@ def main():
             elv = cols[16] if len(cols) > 16 and cols[16] else "0"
             view = int(cols[18]) if len(cols) > 18 and cols[18].isdigit() else 0
 
-            # Nome do recurso (sprite/ícone)
-            if item_id in RESOURCE_NAME_MAP:
-                resource_name = RESOURCE_NAME_MAP[item_id]
+            str_id = str(item_id)
+
+            # Nome limpo sem acentos para garantir zero mojibake
+            raw_display = ptbr_names.get(str_id, csv_display_name)
+            # Remove qualquer sufixo [X] existente no nome para não duplicar, pois roBrowser já adiciona
+            raw_display = re.sub(r"\s*\[\d+\]\s*$", "", raw_display)
+            clean_display_name = strip_accents(raw_display)
+
+            # Mapeamento do sprite no GRF
+            raw_resource = raw_res_map.get(str_id)
+            if raw_resource:
+                res_literal = format_resource_name(raw_resource)
             elif item_type == 6:
-                resource_name = "카드"
+                # Carta genérica
+                res_literal = format_resource_name("\xc4\xab\xb5\xe5")
             else:
-                resource_name = aegis_name
+                res_literal = f'"{escape_lua_string(aegis_name)}"'
 
-            # Carrega blacklist de itens coreanos/quebrados
-            try:
-                import json
-                if not hasattr(main, '_korean_bl'):
-                    bl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "korean_blacklisted_items.json")
-                    with open(bl_path) as blf:
-                        main._korean_bl = set(json.load(blf))
-                if item_id in main._korean_bl:
-                    continue
-            except Exception:
-                pass
-
-            CUSTOM_ITEMS = {2214, 2501, 2401, 2828, 2829, 29000}
-            is_procedural = item_id in CUSTOM_ITEMS
-            is_missing = item_id not in official_ids
-
-            if not is_procedural and not is_missing:
-                continue
-
+            type_name = ITEM_TYPES.get(item_type, "Outro")
             bonus_lines = parse_script_bonuses(script)
-            desc_lines = []
+            is_gear = item_type in (4, 5)
 
-            if is_procedural:
-                customized_count += 1
+            desc_lines = []
+            if is_gear:
                 desc_lines.extend([
                     f"^FF8000[Item Procedural - Seed: {seed}]^000000",
                     "Forjado com energias anomalas desta rodada.",
@@ -248,89 +252,95 @@ def main():
                     for b in bonus_lines:
                         desc_lines.append(f"  {b}")
                     desc_lines.append("^777777----------------------------------------^000000")
+
+                desc_lines.append(f"Tipo: ^000088{type_name}^000000")
+                if atk != "0" and item_type == 5:
+                    desc_lines.append(f"Ataque: ^000088{atk}^000000")
+                if defense != "0" and item_type == 4:
+                    desc_lines.append(f"Defesa: ^000088{defense}^000000")
+                if weight > 0:
+                    desc_lines.append(f"Peso: ^000088{weight:g}^000000")
+                if wlv != "0" and item_type == 5:
+                    desc_lines.append(f"Nivel da Arma: ^000088{wlv}^000000")
+                if elv != "0":
+                    desc_lines.append(f"Nivel Necessario: ^000088{elv}^000000")
             else:
-                missing_count += 1
+                desc_lines.append("Item oficial do Ragnarok Online.")
                 if bonus_lines:
-                    desc_lines.append("^0000CDPropriedades:^000000")
+                    desc_lines.append("^777777----------------------------------------^000000")
+                    desc_lines.append("^0000CDEfeitos:^000000")
                     for b in bonus_lines:
                         desc_lines.append(f"  {b}")
-                    desc_lines.append("^777777----------------------------------------^000000")
+                desc_lines.append("^777777----------------------------------------^000000")
+                desc_lines.append(f"Tipo: ^000088{type_name}^000000")
+                if weight > 0:
+                    desc_lines.append(f"Peso: ^000088{weight:g}^000000")
 
-            # Metadados de combate e uso
-            type_name = ITEM_TYPES.get(item_type, "Outro")
-            desc_lines.append(f"Tipo: ^000088{type_name}^000000")
-
-            if atk != "0" and item_type == 5:
-                desc_lines.append(f"Ataque: ^000088{atk}^000000")
-            if defense != "0" and item_type == 4:
-                desc_lines.append(f"Defesa: ^000088{defense}^000000")
-            if weight > 0:
-                desc_lines.append(f"Peso: ^000088{weight:g}^000000")
-            if wlv != "0" and item_type == 5:
-                desc_lines.append(f"Nível da Arma: ^000088{wlv}^000000")
-            if elv != "0":
-                desc_lines.append(f"Nível Necessário: ^000088{elv}^000000")
-
-            # Montagem do bloco Lua para o item
             desc_entries = ",\n".join([f'            "{escape_lua_string(d)}"' for d in desc_lines])
 
-            # Nome sem códigos de cor — roBrowser exibe o identifiedDisplayName como texto puro
-            # no header do tooltip e janela de equipamentos; cor deve ficar só na description
-            display_name_formatted = display_name
-            if slots > 0 and not f"[{slots}]" in display_name:
-                display_name_formatted = f"{display_name} [{slots}]"
-
-            lua_entry = f"""    [{item_id}] = {{
-        unidentifiedDisplayName = "{escape_lua_string(display_name)}",
-        unidentifiedResourceName = "{escape_lua_string(resource_name)}",
-        identifiedDisplayName = "{escape_lua_string(display_name_formatted)}",
-        identifiedResourceName = "{escape_lua_string(resource_name)}",
+            entry = f"""    [{item_id}] = {{
+        unidentifiedDisplayName = "{escape_lua_string(clean_display_name)}",
+        unidentifiedResourceName = {res_literal},
+        identifiedDisplayName = "{escape_lua_string(clean_display_name)}",
+        identifiedResourceName = {res_literal},
         slotCount = {slots},
         ClassNum = {view},
         unidentifiedDescriptionName = {{
-            "Item não identificado.",
+            "Item nao identificado.",
             "Utilize uma Lupa para inspecionar suas propriedades."
         }},
         identifiedDescriptionName = {{
 {desc_entries}
         }}
     }}"""
-            lua_entries.append(lua_entry)
-            processed_count += 1
+            if is_gear:
+                procedural_entries.append(entry)
+            else:
+                normal_entries.append(entry)
+
+    print(f"Total de itens gerados do item_db:")
+    print(f" - Equipamentos procedurais: {len(procedural_entries)}")
+    print(f" - Itens normais / consumiveis: {len(normal_entries)}")
 
     content = "--[[ \n"
     content += f"  System/itemInfo.lua gerado dinamicamente para roBrowser\n"
-    content += f"  Seed: {seed} | Total itens: {processed_count} | Procedurais: {customized_count} | Adicionais: {missing_count}\n"
+    content += f"  Seed: {seed} | Procedurais: {len(procedural_entries)} | Normais: {len(normal_entries)}\n"
+    content += "  Este arquivo e auto-suficiente.\n"
     content += "--]]\n\n"
     content += "tbl = tbl or {}\n\n"
-    content += "local procedural_items = {\n"
-    content += ",\n".join(lua_entries)
-    content += "\n}\n\n"
-    content += "-- Mescla os itens procedurais/adicionais na tabela principal\n"
-    content += "for k, v in pairs(procedural_items) do\n"
-    content += "    tbl[k] = v\n"
-    content += "    if _processedItems then\n"
-    content += "        _processedItems[k] = nil\n"
-    content += "    end\n"
-    content += "end\n\n"
+
+    # Itens normais do item_db
+    if normal_entries:
+        content += "-- Itens normais\n"
+        content += "local normal_items = {\n"
+        content += ",\n".join(normal_entries)
+        content += "\n}\n"
+        content += "for k, v in pairs(normal_items) do\n"
+        content += "    tbl[k] = v\n"
+        content += "end\n\n"
+
+    # Itens procedurais
+    if procedural_entries:
+        content += "-- Itens procedurais\n"
+        content += "local procedural_items = {\n"
+        content += ",\n".join(procedural_entries)
+        content += "\n}\n"
+        content += "for k, v in pairs(procedural_items) do\n"
+        content += "    tbl[k] = v\n"
+        content += "    if _processedItems then\n"
+        content += "        _processedItems[k] = nil\n"
+        content += "    end\n"
+        content += "end\n\n"
+
     content += "function main()\n"
     content += "    return true\n"
     content += "end\n"
 
     for out_path in output_files:
         os.makedirs(os.path.dirname(out_path), exist_ok=True)
-        # Salvar em UTF-8 sem BOM; wasmoon passa strings Lua como JS strings direto para AddItem,
-        # portanto o encoding do arquivo .lua nao importa para as strings processadas — apenas
-        # precisa ser UTF-8 valido para o parser Lua.
         with open(out_path, "w", encoding="utf-8") as out:
             out.write(content)
         print(f"Sucesso! {out_path} gerado (utf-8).")
-
-    print("=================================")
-    print(f"Total de itens catalogados: {processed_count}")
-    print(f"Itens procedurais: {customized_count}")
-    print(f"Itens adicionais do item_db: {missing_count}")
-    print("=================================")
 
 
 if __name__ == "__main__":

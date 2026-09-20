@@ -86,6 +86,7 @@ services:
       - ./docker/robrowser/liblua5.1.wasm:/opt/roBrowserLegacy/liblua5.1.wasm:ro
       - ./docker/robrowser/liblua5.1.wasm:/opt/roBrowserLegacy/src/Vendors/liblua5.1.wasm:ro
       - ./docker/robrowser/Config.local.template.js:/opt/Config.local.template.js:ro
+      - ./docker/robrowser/patch_online.js:/opt/patch_online.js:ro
       - ./web/public/favicon.ico:/opt/roBrowserLegacy/favicon.ico:ro
 
   panel:

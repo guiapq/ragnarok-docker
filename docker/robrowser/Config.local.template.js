@@ -28,7 +28,8 @@ window.ROConfigLocal = {
     skipIntro: false,
 
     // Enable Lua engine for rich, modern itemInfo and skilldescript
+    // Usando apenas .lua textual — evita dependência do .lub binário do bRO
     loadLua: true,
-    customItemInfo: ['System/itemInfo.lub', 'System/itemInfo.lua']
+    customItemInfo: ['System/itemInfo.lua']
 };
 
