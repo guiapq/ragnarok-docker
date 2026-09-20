@@ -1,17 +1,17 @@
-FROM alpine:3.19
+FROM node:22-bookworm-slim
 
 WORKDIR /opt
 
 RUN echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true
 
-RUN timeout 480 apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    nodejs \
-    npm \
+    ca-certificates \
     bash \
     nano \
     curl \
-    gettext
+    gettext-base \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN timeout 180 npm install -g wsproxy http-server
 
@@ -27,7 +27,7 @@ RUN git config --global http.lowSpeedLimit 1000 \
 WORKDIR /opt/roBrowserLegacy
 
 # instalar dependências
-RUN timeout 600 npm install --legacy-peer-deps || timeout 600 npm install --force
+RUN timeout 600 npm install --legacy-peer-deps
 
 # build
 RUN timeout 300 npm run build -- -O -T -H
