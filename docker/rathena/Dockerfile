@@ -95,8 +95,11 @@ COPY --from=builder /build/rathena/map-server /opt/rathena/map-server
 COPY --from=builder /build/rathena/athena-start /opt/rathena/athena-start
 COPY --from=builder /build/rathena/function.sh /opt/rathena/function.sh
 COPY --from=builder /build/rathena/conf /opt/rathena/conf
+COPY --from=builder /build/rathena/conf /opt/rathena/conf.default
 COPY --from=builder /build/rathena/db /opt/rathena/db
+COPY --from=builder /build/rathena/db /opt/rathena/db.default
 COPY --from=builder /build/rathena/npc /opt/rathena/npc
+COPY --from=builder /build/rathena/npc /opt/rathena/npc.default
 COPY --from=builder /build/rathena/sql-files /opt/rathena/sql-files
 
 # Criar pasta de logs e compatibilidade com caminhos legados (/usr/bin/rathena e /datastoresetup)

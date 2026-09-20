@@ -4,6 +4,18 @@ set -e
 echo "=== Configurando rAthena nativo ==="
 
 CONF_DIR="/opt/rathena/conf"
+if [ ! -f "$CONF_DIR/char_athena.conf" ]; then
+    echo "=== [AVISO] char_athena.conf não encontrado em $CONF_DIR ==="
+    if [ -d "/opt/rathena/conf.default" ]; then
+        echo "Restaurando configurações padrão de /opt/rathena/conf.default..."
+        cp -r /opt/rathena/conf.default/* "$CONF_DIR/"
+    else
+        echo "[ERRO CRÍTICO] Diretório $CONF_DIR está vazio!"
+        echo "Execute no host: ./setup-rathena-data_base-external.sh && make world SEED=zawarudo"
+        exit 1
+    fi
+fi
+
 cd $CONF_DIR
 
 RO_IP="${RO_IP:-127.0.0.1}"
