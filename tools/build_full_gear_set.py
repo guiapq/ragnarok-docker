@@ -102,8 +102,70 @@ print(f"[META] Arquétipo favorecido na seed: {favored}")
 # FUNÇÕES AUXILIARES DE PARSING
 # =============================================================================
 
+def extract_first_script(line):
+    """
+    Separa a linha do item_db.txt em:
+    - before_script: cabeçalho CSV antes do primeiro '{'
+    - vanilla_script: conteúdo interno do primeiro script (Equip Script), respeitando blocos aninhados e aspas
+    - after_script: restante da linha após o fechamento do primeiro script (ex: ',{},{}')
+    """
+    idx = line.find("{")
+    if idx == -1:
+        return line.rstrip("\r\n"), "", ",{},{}"
+
+    before_script = line[:idx]
+
+    depth = 0
+    in_quote = False
+    quote_char = ""
+    script_start = idx + 1
+    script_end = -1
+
+    i = idx
+    while i < len(line):
+        ch = line[i]
+        if in_quote:
+            if ch == "\\" and i + 1 < len(line):
+                i += 2
+                continue
+            elif ch == quote_char:
+                in_quote = False
+            i += 1
+            continue
+        if ch in ("\"", "'"):
+            in_quote = True
+            quote_char = ch
+            i += 1
+            continue
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                script_end = i
+                break
+        i += 1
+
+    if script_end != -1:
+        vanilla_script = line[script_start:script_end].strip()
+        after_script = line[script_end + 1:].rstrip("\r\n")
+    else:
+        vanilla_script = line[script_start:].strip()
+        after_script = ",{},{}"
+
+    return before_script, vanilla_script, after_script
+
+
+def clean_script_comments(script):
+    """Remove comentários C (/* ... */) e de linha (// ...) de scripts."""
+    s = re.sub(r"/\*.*?\*/", " ", script, flags=re.DOTALL)
+    s = re.sub(r"//[^\r\n]*", " ", s)
+    return s
+
+
 def split_script_statements(script):
-    """Divide um script rAthena em declarações, respeitando blocos aninhados { ... }."""
+    """Divide um script rAthena em declarações, respeitando blocos aninhados { ... } e if-else."""
+    script = clean_script_comments(script)
     statements = []
     current = []
     depth = 0
@@ -134,12 +196,15 @@ def split_script_statements(script):
             depth -= 1
             current.append(ch)
             if depth == 0:
-                stmt = "".join(current).strip()
-                if stmt:
-                    if not stmt.endswith(";"):
-                        stmt += ";"
-                    statements.append(stmt)
-                current = []
+                rest_ahead = script[i + 1:].lstrip()
+                if rest_ahead.startswith("else"):
+                    # Não encerra o comando se houver 'else' na sequência imediata
+                    pass
+                else:
+                    stmt = "".join(current).strip()
+                    if stmt:
+                        statements.append(stmt)
+                    current = []
         elif ch == ";":
             if depth == 0:
                 current.append(ch)
@@ -154,8 +219,6 @@ def split_script_statements(script):
         i += 1
     tail = "".join(current).strip()
     if tail:
-        if not tail.endswith(";"):
-            tail += ";"
         statements.append(tail)
     return statements
 
@@ -484,16 +547,8 @@ def main():
 
             total_count += 1
 
-            # Separa script e cabeçalho
-            if "{" in line:
-                before_script, rest = line.split("{", 1)
-                script_parts = rest.split("}", 1)
-                vanilla_script = script_parts[0].strip()
-                after_script = "}" + script_parts[1] if len(script_parts) > 1 else "},{},{}"
-            else:
-                before_script = line
-                vanilla_script = ""
-                after_script = ",{},{}"
+            # Separa script e cabeçalho com parser robusto
+            before_script, vanilla_script, after_script = extract_first_script(line)
 
             cols = [c.strip() for c in before_script.split(",")]
             try:
@@ -554,14 +609,15 @@ def main():
 
                 # Reconstrói a linha com cabeçalho atualizado e novo script
                 new_before = ",".join(cols)
-                new_line = f"{new_before}{{ {new_script} }}{after_script}\n"
+                script_body = f" {new_script} " if new_script else ""
+                new_line = f"{new_before}{{{script_body}}}{after_script}\n"
                 lines.append(new_line)
                 gear_count += 1
             else:
                 # Não é equipamento, mas pode ter tido eLV reduzido
                 new_before = ",".join(cols)
                 if new_before != before_script:
-                    new_line = f"{new_before}{{{vanilla_script}{after_script}\n"
+                    new_line = f"{new_before}{line[len(before_script):]}"
                     lines.append(new_line)
                 else:
                     lines.append(line)

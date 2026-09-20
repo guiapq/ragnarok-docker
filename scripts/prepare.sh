@@ -41,4 +41,19 @@ else
     echo "  ✓ Runtime data/ (db, npc, conf): OK"
 fi
 
+# 5. Templates de importação (db, conf, msg_conf) do rAthena
+mkdir -p data_base/db/import data/db/import data_base/conf/import data/conf/import data_base/conf/msg_conf/import data/conf/msg_conf/import
+if [ -d "data_base/db/import-tmpl" ]; then
+    cp -n data_base/db/import-tmpl/* data_base/db/import/ 2>/dev/null || true
+    cp -n data_base/db/import-tmpl/* data/db/import/ 2>/dev/null || true
+fi
+if [ -d "data_base/conf/import-tmpl" ]; then
+    cp -n data_base/conf/import-tmpl/* data_base/conf/import/ 2>/dev/null || true
+    cp -n data_base/conf/import-tmpl/* data/conf/import/ 2>/dev/null || true
+fi
+if [ -d "data_base/conf/msg_conf/import-tmpl" ]; then
+    cp -n data_base/conf/msg_conf/import-tmpl/* data_base/conf/msg_conf/import/ 2>/dev/null || true
+    cp -n data_base/conf/msg_conf/import-tmpl/* data/conf/msg_conf/import/ 2>/dev/null || true
+fi
+
 echo "=== [OK] Ambiente 100% preparado e pronto para o Docker ==="

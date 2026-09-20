@@ -65,6 +65,16 @@ echo "Copiando base limpa..."
 cp -r data_base/db data/
 cp -r data_base/npc data/
 cp -r data_base/conf data/
+mkdir -p data/db/import data/conf/import data/conf/msg_conf/import
+if [ -d "data_base/db/import-tmpl" ]; then
+    cp -n data_base/db/import-tmpl/* data/db/import/ 2>/dev/null || true
+fi
+if [ -d "data_base/conf/import-tmpl" ]; then
+    cp -n data_base/conf/import-tmpl/* data/conf/import/ 2>/dev/null || true
+fi
+if [ -d "data_base/conf/msg_conf/import-tmpl" ]; then
+    cp -n data_base/conf/msg_conf/import-tmpl/* data/conf/msg_conf/import/ 2>/dev/null || true
+fi
 
 echo
 echo "Configurando seed..."

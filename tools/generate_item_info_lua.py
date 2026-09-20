@@ -35,6 +35,49 @@ def strip_accents(s):
     return "".join(c for c in nfkd if not unicodedata.combining(c))
 
 
+def extract_first_script(line):
+    idx = line.find("{")
+    if idx == -1:
+        return line.rstrip("\r\n"), "", ",{},{}"
+    before_script = line[:idx]
+    depth = 0
+    in_quote = False
+    quote_char = ""
+    script_start = idx + 1
+    script_end = -1
+    i = idx
+    while i < len(line):
+        ch = line[i]
+        if in_quote:
+            if ch == "\\" and i + 1 < len(line):
+                i += 2
+                continue
+            elif ch == quote_char:
+                in_quote = False
+            i += 1
+            continue
+        if ch in ("\"", "'"):
+            in_quote = True
+            quote_char = ch
+            i += 1
+            continue
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                script_end = i
+                break
+        i += 1
+    if script_end != -1:
+        vanilla_script = line[script_start:script_end].strip()
+        after_script = line[script_end + 1:].rstrip("\r\n")
+    else:
+        vanilla_script = line[script_start:].strip()
+        after_script = ",{},{}"
+    return before_script, vanilla_script, after_script
+
+
 # Dicionário de tradução de bônus do rAthena para descrições formatadas em cores do Ragnarok
 BONUS_TRANSLATIONS = {
     # Atributos Principais
@@ -251,12 +294,7 @@ def main():
             if not line_str or line_str.startswith("//"):
                 continue
 
-            if "{" in line_str:
-                before_script, rest = line_str.split("{", 1)
-                script = rest.split("}", 1)[0].strip()
-            else:
-                before_script = line_str
-                script = ""
+            before_script, script, _ = extract_first_script(line_str)
 
             cols = [c.strip() for c in before_script.split(",")]
             if len(cols) < 4:

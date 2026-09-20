@@ -327,29 +327,16 @@ def get_rare_pool_for_shop(npc_name, map_name, orig_ids):
 
 
 def pick_rare_slots(pool_name, pool, used_ids, count=5):
-    """Escolhe `count` itens únicos do pool e gera preços randomizados (múltiplos de 500z)."""
-    min_m, max_m = RARE_PRICE_RANGES[pool_name]
+    """Escolhe `count` itens únicos do pool e define com preço dinâmico (-1) do item_db."""
     available = [i for i in pool if i not in used_ids]
     if len(available) < count:
         available = pool  # se não há suficientes, permite repetição
     chosen = random.sample(available, min(count, len(available)))
     slots = []
     for item_id in chosen:
-        # Preço base de referência
-        if item_id in RARE_ITEM_PRICES:
-            base_price = RARE_ITEM_PRICES[item_id]
-        else:
-            base_price = random.randint(min_m, max_m) * 500
-        # Tempero das lojas: preço aleatório por loja variado entre 100% e 140% do base,
-        # rigorosamente arredondado para múltiplos de 500z e sempre >= base_price
-        # para garantir matematicamente que revenda ao NPC nunca seja vantajosa
-        factor = random.choice([1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40])
-        calc_price = round((base_price * factor) / 500) * 500
-        price = max(calc_price, base_price, 500)
-        # Garantir múltiplo de 500
-        if price % 500 != 0:
-            price = ((price // 500) + 1) * 500
-        slots.append(f"{item_id}:{price}")
+        # Usa -1 para que o rAthena utilize o preço de compra canônico e rebalanceado do item_db.txt,
+        # prevenindo 100% dos exploits de revenda (Overcharge/Discount) e os warnings do servidor.
+        slots.append(f"{item_id}:-1")
     return slots
 
 # ─────────────────────────────────────────────────────────────────────────────

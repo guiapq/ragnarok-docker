@@ -53,7 +53,31 @@ def main() -> None:
                         fail("ATK da espada básica (1101) está zerado em item_db.txt!")
                     break
 
-    print(f"[SANITY] item_db validado: {item_file.name}")
+    # Validação de integridade dos scripts no item_db (evita parse_curly_close errors)
+    for check_db in [ROOT / "data" / "db" / "pre-re" / "item_db.txt", ROOT / "data" / "db" / "re" / "item_db.txt"]:
+        if check_db.exists():
+            with open(check_db, "r", encoding="latin-1", errors="ignore") as f:
+                for line_num, line in enumerate(f, 1):
+                    line_s = line.strip()
+                    if not line_s or line_s.startswith("//"):
+                        continue
+                    if "{" in line_s:
+                        # Contagem de blocos balanceados
+                        open_c = line_s.count("{")
+                        close_c = line_s.count("}")
+                        if open_c != close_c:
+                            fail(f"Chaves desbalanceadas no {check_db.name}:{line_num} ({open_c} '{{' vs {close_c} '}}'): {line_s[:80]}")
+                        # Verifica se não há fechamentos duplicados sem abertura correspondente
+                        if "}}" in line_s and "{{" not in line_s:
+                            # Se há '}}', certificar de que há aninhamento real correspondente
+                            depth = 0
+                            for ch in line_s:
+                                if ch == "{": depth += 1
+                                elif ch == "}": depth -= 1
+                                if depth < 0:
+                                    fail(f"Fechamento de chave prematuro no {check_db.name}:{line_num}: {line_s[:80]}")
+
+    print(f"[SANITY] item_db validado: {item_file.name} (chaves balanceadas)")
     print(f"[SANITY] mob_db validado: {mob_file.name}")
     print(f"[SANITY] itemInfo.lua validado: {item_info_lua.name}")
     print(f"[SANITY] event_telemetry.txt validado: {telemetry_file.name}")
