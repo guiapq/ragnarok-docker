@@ -43,6 +43,15 @@ php artisan config:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
 
+echo "Aguardando tabelas do banco de dados (tabela login)..."
+for i in $(seq 1 30); do
+    if php -r "try { (new PDO('mysql:host='.(getenv('DB_HOST')?:'db').';port='.(getenv('DB_PORT')?:'3306').';dbname='.(getenv('DB_DATABASE')?:'ragnarok'), getenv('DB_USERNAME')?:'ragnarok', getenv('DB_PASSWORD')?:'ragnarok'))->query('SELECT 1 FROM login LIMIT 1'); exit(0); } catch(Exception \$e) { exit(1); }" 2>/dev/null; then
+        echo "Tabela login pronta!"
+        break
+    fi
+    sleep 2
+done
+
 echo "Executando migrações do banco..."
 php artisan migrate --force || true
 

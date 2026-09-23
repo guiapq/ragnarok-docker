@@ -64,8 +64,10 @@ services:
       - ./docker/rathena/start.sh:/start.sh:ro
       - ./docker/rathena/casual.sh:/casual.sh:ro
       - ./docker/rathena/seeder.sh:/seeder.sh:ro
+      - ./docker/rathena/configure_groups.py:/configure_groups.py:ro
 
   robrowser:
+    image: ragnarok-docker-robrowser:latest
     build:
       context: ./docker/robrowser
       args:
@@ -92,6 +94,7 @@ services:
       - ./web/public/favicon.ico:/opt/roBrowserLegacy/favicon.ico:ro
 
   panel:
+    image: ragnarok-docker-panel:latest
     build:
       context: .
       dockerfile: docker/panel/Dockerfile
