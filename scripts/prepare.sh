@@ -56,4 +56,21 @@ if [ -d "data_base/conf/msg_conf/import-tmpl" ]; then
     cp -n data_base/conf/msg_conf/import-tmpl/* data/conf/msg_conf/import/ 2>/dev/null || true
 fi
 
+# 6. Painel Web Laravel (web/)
+if [ ! -f "web/composer.json" ] || [ ! -f "web/artisan" ]; then
+    echo "[SETUP] Painel Web (web/) ausente ou incompleto. Inicializando submódulo git..."
+    git submodule update --init --recursive web 2>/dev/null || {
+        echo "[WARN] git submodule falhou. Tentando clonar repositório do painel diretamente..."
+        rm -rf web
+        git clone https://github.com/guiapq/ragnabraza-cp.git web || true
+    }
+    if [ -f "web/composer.json" ]; then
+        echo "  ✓ Painel Web (web): Configurado com sucesso!"
+    else
+        echo "[ERRO] Falha ao obter arquivos do painel web em web/."
+    fi
+else
+    echo "  ✓ Painel Web (web): OK"
+fi
+
 echo "=== [OK] Ambiente 100% preparado e pronto para o Docker ==="

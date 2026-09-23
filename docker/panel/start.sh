@@ -9,6 +9,21 @@ cd /var/www/html
 
 echo "=== Ragnarok Web Panel: Inicializando ==="
 
+# Auto-recuperação se o volume montado estiver vazio ou sem o Laravel
+if [ ! -f composer.json ] || [ ! -f artisan ]; then
+    echo "[WARN] /var/www/html está sem composer.json ou artisan (submódulo não inicializado)."
+    echo "[INFO] Baixando arquivos do painel web via Git..."
+    if command -v git >/dev/null 2>&1; then
+        git clone --depth=1 https://github.com/guiapq/ragnabraza-cp.git /tmp/panel_repo
+        cp -a /tmp/panel_repo/. /var/www/html/
+        rm -rf /tmp/panel_repo
+        echo "[OK] Arquivos do painel web baixados com sucesso!"
+    else
+        echo "[ERRO] git não encontrado no container e /var/www/html está vazio!"
+        exit 1
+    fi
+fi
+
 # Permissões do Laravel
 mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache storage/logs bootstrap/cache
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true

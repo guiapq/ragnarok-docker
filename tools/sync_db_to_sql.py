@@ -232,26 +232,44 @@ def parse_mob_db_line(line):
 
 
 def execute_sql_batch(creds, queries):
-    """Executa consultas SQL via mysql client local ou docker exec."""
+    """Executa consultas SQL via mysql client no container db, server ou local."""
     full_sql = "SET FOREIGN_KEY_CHECKS=0;\n" + "\n".join(queries) + "\nSET FOREIGN_KEY_CHECKS=1;\n"
     
-    # Tenta rodar via docker exec ragnarok-server se o client local não estiver disponível
-    cmd = [
-        "docker", "exec", "-i", "ragnarok-server",
-        "mysql", "-h", "db", "-u", creds["user"], f"-p{creds['password']}", creds["database"]
+    # 1. Tenta rodar via container ragnarok-db (MariaDB padrão do compose, sempre ativo)
+    cmd_db = [
+        "docker", "exec", "-i", "ragnarok-db",
+        "mysql", "-u", creds["user"], f"-p{creds['password']}", creds["database"]
     ]
     try:
-        proc = subprocess.run(cmd, input=full_sql.encode('utf-8'), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        proc = subprocess.run(cmd_db, input=full_sql.encode('utf-8'), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
 
-    # Fallback: mysql local
-    local_cmd = [
-        "mysql", "-h", creds["host"], "-P", creds["port"], "-u", creds["user"], f"-p{creds['password']}", creds["database"]
+    # 2. Tenta rodar via docker exec ragnarok-server se o rAthena estiver rodando
+    cmd_server = [
+        "docker", "exec", "-i", "ragnarok-server",
+        "mysql", "-h", "db", "-u", creds["user"], f"-p{creds['password']}", creds["database"]
     ]
-    proc = subprocess.run(local_cmd, input=full_sql.encode('utf-8'), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-    return True
+    try:
+        proc = subprocess.run(cmd_server, input=full_sql.encode('utf-8'), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+
+    # 3. Fallback: mysql local no host
+    try:
+        local_cmd = [
+            "mysql", "-h", creds["host"], "-P", str(creds["port"]), "-u", creds["user"], f"-p{creds['password']}", creds["database"]
+        ]
+        proc = subprocess.run(local_cmd, input=full_sql.encode('utf-8'), stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return True
+    except FileNotFoundError:
+        print("[WARN] Cliente 'mysql' não encontrado no host e containers ragnarok-db/server indisponíveis.")
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f"[WARN] Falha ao executar SQL no banco: {e}")
+        return False
 
 
 def sync_items(creds, item_file):

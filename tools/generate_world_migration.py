@@ -57,8 +57,8 @@ def main():
 
     # Fazer dump das tabelas item_db e mob_db usando docker exec
     dump_cmd = [
-        "docker", "exec", "ragnarok-server",
-        "mysqldump", "-h", "db", "-u", "ragnarok", "-pragnarok",
+        "docker", "exec", "ragnarok-db",
+        "mysqldump", "-u", "ragnarok", "-pragnarok",
         "--no-create-info", "--complete-insert", "--replace",
         "ragnarok", "item_db", "mob_db"
     ]
@@ -67,11 +67,23 @@ def main():
         with open(sql_path, "wb") as f:
             f.write(proc.stdout)
         print(f"  ✓ Dados SQL gerados com sucesso ({len(proc.stdout)} bytes)")
-    except Exception as e:
-        print(f"[WARN] Falha ao executar mysqldump: {e}. Gerando SQL a partir dos arquivos txt...")
-        # Fallback se mysqldump falhar
-        with open(sql_path, "w") as f:
-            f.write(f"-- World Seed: {seed} ({timestamp})\n")
+    except Exception:
+        # Fallback para ragnarok-server se o rAthena estiver rodando
+        dump_cmd_server = [
+            "docker", "exec", "ragnarok-server",
+            "mysqldump", "-h", "db", "-u", "ragnarok", "-pragnarok",
+            "--no-create-info", "--complete-insert", "--replace",
+            "ragnarok", "item_db", "mob_db"
+        ]
+        try:
+            proc = subprocess.run(dump_cmd_server, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+            with open(sql_path, "wb") as f:
+                f.write(proc.stdout)
+            print(f"  ✓ Dados SQL gerados com sucesso via ragnarok-server ({len(proc.stdout)} bytes)")
+        except Exception as e:
+            print(f"[WARN] Falha ao executar mysqldump: {e}. Gerando SQL a partir dos arquivos txt...")
+            with open(sql_path, "w") as f:
+                f.write(f"-- World Seed: {seed} ({timestamp})\n")
 
     # 2. Criar o arquivo de Migration do Laravel
     migration_filename = f"{timestamp}_seed_world_{clean_seed}.php"
