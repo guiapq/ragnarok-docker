@@ -113,8 +113,8 @@ python3 tools/generate_item_info_lua.py
 echo "Configuring rAthena player groups (Group 6 Tester & Player @warp/@go)..."
 python3 tools/configure_groups.py data/conf/groups.conf
 
-echo "Synchronizing world data to SQL database (item_db & mob_db)..."
-python3 tools/sync_db_to_sql.py
+echo "Generating Laravel world migration (seed: $WORLD_SEED)..."
+python3 tools/generate_world_migration.py "$WORLD_SEED"
 
 echo "Running sanity checks..."
 python3 scripts/sanity_check_world.py
