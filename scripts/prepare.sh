@@ -59,10 +59,14 @@ fi
 # 6. Painel Web Laravel (web/)
 if [ ! -f "web/composer.json" ] || [ ! -f "web/artisan" ]; then
     echo "[SETUP] Painel Web (web/) ausente ou incompleto. Inicializando submódulo git..."
-    git submodule update --init --recursive web 2>/dev/null || {
+    git submodule update --init --force --recursive web 2>/dev/null || {
         echo "[WARN] git submodule falhou. Tentando clonar repositório do painel diretamente..."
-        rm -rf web
-        git clone https://github.com/guiapq/ragnabraza-cp.git web || true
+        _tmp_web=$(mktemp -d)
+        if git clone --depth=1 https://github.com/guiapq/ragnabraza-cp.git "$_tmp_web" 2>/dev/null; then
+            mkdir -p web
+            cp -rn "$_tmp_web"/. web/ 2>/dev/null || cp -r "$_tmp_web"/* web/ 2>/dev/null || true
+            rm -rf "$_tmp_web"
+        fi
     }
     if [ -f "web/composer.json" ]; then
         echo "  ✓ Painel Web (web): Configurado com sucesso!"
