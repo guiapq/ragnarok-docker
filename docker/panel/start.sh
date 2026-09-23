@@ -21,6 +21,14 @@ if [ ! -f .env ]; then
     fi
 fi
 
+if [ -f .env ]; then
+    sed -i "s/^DB_HOST=.*/DB_HOST=${DB_HOST:-db}/" .env
+    sed -i "s/^DB_PORT=.*/DB_PORT=${DB_PORT:-3306}/" .env
+    sed -i "s/^DB_DATABASE=.*/DB_DATABASE=${DB_DATABASE:-ragnarok}/" .env
+    sed -i "s/^DB_USERNAME=.*/DB_USERNAME=${DB_USERNAME:-ragnarok}/" .env
+    sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${DB_PASSWORD:-ragnarok}/" .env
+fi
+
 # Instalação das dependências
 if [ ! -d "vendor" ]; then
     echo "Instalando dependências do Composer (Laravel + Filament)..."
