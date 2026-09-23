@@ -112,13 +112,10 @@ RUN mkdir -p /opt/rathena/log && \
 # Copiar scripts utilitários
 COPY docker/rathena/start.sh /start.sh
 COPY docker/rathena/casual.sh /casual.sh
-COPY docker/rathena/seeder.sh /seeder.sh
-COPY docker/rathena/analyzer.sh /analyzer.sh
 COPY docker/rathena/cat_python.py /cat_python.py
-COPY docker/rathena/build_ro_database.py /build_ro_database.py
 
 RUN ln -sf /start.sh /launch-athena.sh && \
-    chmod +x /start.sh /casual.sh /seeder.sh /analyzer.sh /cat_python.py /build_ro_database.py /opt/rathena/athena-start /opt/rathena/function.sh
+    chmod +x /start.sh /casual.sh /cat_python.py /opt/rathena/athena-start /opt/rathena/function.sh
 
 EXPOSE 6900 6121 5121
 

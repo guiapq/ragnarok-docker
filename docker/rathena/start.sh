@@ -154,11 +154,6 @@ if [ -f /casual.sh ]; then
     bash /casual.sh --apply-only
 fi
 
-# 3b. Provisionar contas de teste (apenas na primeira vez — idempotente)
-echo "=== Provisionando contas de teste (seeder) ==="
-if [ -f /seeder.sh ]; then
-    bash /seeder.sh 2>&1 | grep -E "=== |→ |✓|criado|ok|Seeder" || true
-fi
 
 # 4. Arquivo de credenciais de recuperação rápida
 cat <<EOF > /opt/rathena/CREDENTIALS.txt

@@ -135,8 +135,6 @@ print_file docker/rathena/casual.sh "Preset CASUAL do servidor"
 ############################################
 
 print_file docker/rathena/cat_python.py "Ferramenta para inspeção de configs"
-print_file docker/rathena/build_ro_database.py "Gerador da database web"
-print_file docker/rathena/database.html "Interface web da database"
 
 ############################################
 # Tools (randomizers)

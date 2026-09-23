@@ -16,8 +16,9 @@ def load_env():
 
 env=load_env()
 
-ROOT=env["RATHENA_ROOT"]
-MOB_DB=f"{ROOT}/db/re/mob_db.txt"
+ROOT = env.get("RATHENA_ROOT", "data")
+mob_db_rel = env.get("MOB_DB_PATH", "db/pre-re/mob_db.txt")
+MOB_DB = os.path.join(ROOT, mob_db_rel)
 
 MODE=env.get("MOB_RANDO_CHAOTIC","medium")
 

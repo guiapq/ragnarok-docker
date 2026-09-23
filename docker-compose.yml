@@ -63,7 +63,6 @@ services:
       - ./data/conf:/opt/rathena/conf
       - ./docker/rathena/start.sh:/start.sh:ro
       - ./docker/rathena/casual.sh:/casual.sh:ro
-      - ./docker/rathena/seeder.sh:/seeder.sh:ro
       - ./docker/rathena/configure_groups.py:/configure_groups.py:ro
 
   robrowser:
