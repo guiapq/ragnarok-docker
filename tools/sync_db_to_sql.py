@@ -96,7 +96,7 @@ def parse_item_db_line(line):
     def safe_int(idx, default=0):
         if idx < len(parts) and parts[idx] != "":
             try:
-                return int(parts[idx])
+                return int(parts[idx], 0)
             except ValueError:
                 return default
         return default

@@ -266,6 +266,98 @@ for (const [oldStr, newStr] of [
 	}
 }
 
+// Patch 6: loadHatEffectInfo onError handling
+const targetHat = `			// All files loaded
+			onEnd && onEnd();
+		});
+	}`;
+
+const replaceHat = `			// All files loaded
+			onEnd && onEnd();
+		}, function(err) {
+			console.warn('[HatEffect] Not found:', err);
+			onEnd && onEnd();
+		});
+	}`;
+
+for (const [oldStr, newStr] of [
+	[targetHat.replace(/\n/g, '\r\n'), replaceHat.replace(/\n/g, '\r\n')],
+	[targetHat, replaceHat]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 6 (loadHatEffectInfo onError handling) applied');
+		break;
+	}
+}
+
+// Patch 7: DB.init Fail-Safe Watchdog (never hang at 84% on missing files)
+const targetDbInit = `	DB.init = function init() {
+		// Callback
+		var index = 0,
+			count = 0;
+		function onLoad() {
+			count++;
+			return function OnLoadClosure() {
+				index++;
+
+				if (DB.onProgress) {
+					DB.onProgress(index, count);
+				}
+
+				if (index === count && DB.onReady) {
+					DB.onReady();
+				}
+			};
+		}`;
+
+const replaceDbInit = `	DB.init = function init() {
+		// Callback
+		var index = 0,
+			count = 0;
+		var watchdogTimer = null;
+		function resetWatchdog() {
+			if (watchdogTimer) clearTimeout(watchdogTimer);
+			watchdogTimer = setTimeout(function () {
+				if (index < count && DB.onReady) {
+					console.warn('[DB.init Watchdog] Timeout waiting for DB tables (' + index + '/' + count + '). Auto-advancing.');
+					index = count;
+					if (DB.onProgress) DB.onProgress(count, count);
+					DB.onReady();
+				}
+			}, 3000);
+		}
+		function onLoad() {
+			count++;
+			resetWatchdog();
+			return function OnLoadClosure() {
+				index++;
+				resetWatchdog();
+
+				if (DB.onProgress) {
+					DB.onProgress(index, count);
+				}
+
+				if (index === count && DB.onReady) {
+					if (watchdogTimer) clearTimeout(watchdogTimer);
+					DB.onReady();
+				}
+			};
+		}`;
+
+for (const [oldStr, newStr] of [
+	[targetDbInit.replace(/\n/g, '\r\n'), replaceDbInit.replace(/\n/g, '\r\n')],
+	[targetDbInit, replaceDbInit]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 7 (DB.init Fail-Safe Watchdog) applied');
+		break;
+	}
+}
+
 fs.writeFileSync(onlinePath, content, 'utf8');
 
 // Patch ThreadEventHandler.js para desativar cache local no itemInfo.lua
