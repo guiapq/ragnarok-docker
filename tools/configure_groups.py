@@ -73,7 +73,7 @@ def check_brackets_balance(text: str) -> bool:
 
 
 def patch_group_0_commands(content: str) -> tuple[str, bool]:
-    """Garante que o Grupo 0 (id: 0) tenha warp: true e go: true."""
+    """Garante que o Grupo 0 (id: 0) tenha comandos essenciais habilitados."""
     # Encontra o bloco do id: 0
     # O bloco do grupo 0 começa com '{' e tem 'id: 0'
     m_grp = re.search(r'(\{\s*id:\s*0\b[^\}]*?commands:\s*\{)([^\}]*?)(\})', content, re.DOTALL)
@@ -90,24 +90,28 @@ def patch_group_0_commands(content: str) -> tuple[str, bool]:
     modified = False
     new_cmds = commands_body
 
-    if not re.search(r'\bwarp\s*:', new_cmds):
-        new_cmds += "\n\t\twarp: true"
-        modified = True
-    else:
-        # Se existir mas estiver falso, ativa
-        sub_new, n = re.subn(r'(\bwarp\s*:\s*)false', r'\1true', new_cmds)
-        if n > 0:
-            new_cmds = sub_new
-            modified = True
+    required_commands = [
+        "warp",
+        "go",
+        "autoloot",
+        "alootid",
+        "autoloottype",
+        "whodrops",
+        "iteminfo",
+        "mobinfo",
+        "identify",
+        "identifyall",
+    ]
 
-    if not re.search(r'\bgo\s*:', new_cmds):
-        new_cmds += "\n\t\tgo: true"
-        modified = True
-    else:
-        sub_new, n = re.subn(r'(\bgo\s*:\s*)false', r'\1true', new_cmds)
-        if n > 0:
-            new_cmds = sub_new
+    for cmd in required_commands:
+        if not re.search(rf'\b{cmd}\s*:', new_cmds):
+            new_cmds += f"\n\t\t{cmd}: true"
             modified = True
+        else:
+            sub_new, n = re.subn(rf'(\b{cmd}\s*:\s*)false', r'\1true', new_cmds)
+            if n > 0:
+                new_cmds = sub_new
+                modified = True
 
     if not modified:
         return content, False
