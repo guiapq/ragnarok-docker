@@ -359,14 +359,16 @@ for (const [oldStr, newStr] of [
 }
 
 // Patch 8: ItemInfo & ItemCompare Collection image fallback to Divine Pride
-const targetCollection = `				'collection/' +
+if (!content.includes("static.divine-pride.net/images/items/collection/' + item.ITID")) {
+	const targetCollection = `				'collection/' +
 				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
 				'.bmp',
 			function (data) {
 				ui.find('.collection').css('backgroundImage', 'url(' + data + ')');
-			}`;
+			}
+		);`;
 
-const replaceCollection = `				'collection/' +
+	const replaceCollection = `				'collection/' +
 				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
 				'.bmp',
 			function (data) {
@@ -374,18 +376,20 @@ const replaceCollection = `				'collection/' +
 			},
 			function () {
 				ui.find('.collection').css('backgroundImage', 'url(https://static.divine-pride.net/images/items/collection/' + item.ITID + '.png)');
-			}`;
+			}
+		);`;
 
-for (const [oldStr, newStr] of [
-	[targetCollection.replace(/\n/g, '\r\n'), replaceCollection.replace(/\n/g, '\r\n')],
-	[targetCollection, replaceCollection]
-]) {
-	if (content.includes(oldStr)) {
-		const count = content.split(oldStr).length - 1;
-		content = content.split(oldStr).join(newStr);
-		patches += count;
-		console.log(`✓ Patch 8 (ItemInfo/Compare Collection Divine Pride fallback) applied to ${count} places`);
-		break;
+	for (const [oldStr, newStr] of [
+		[targetCollection.replace(/\n/g, '\r\n'), replaceCollection.replace(/\n/g, '\r\n')],
+		[targetCollection, replaceCollection]
+	]) {
+		if (content.includes(oldStr)) {
+			const count = content.split(oldStr).length - 1;
+			content = content.split(oldStr).join(newStr);
+			patches += count;
+			console.log(`✓ Patch 8 (ItemInfo/Compare Collection Divine Pride fallback) applied to ${count} places`);
+			break;
+		}
 	}
 }
 
@@ -564,6 +568,196 @@ for (const [oldStr, newStr] of [
 	}
 }
 
+
+// Patch 14: NpcStore item icon fallback to Divine Pride
+const targetStoreItem = `		// Add the icon once loaded
+		Client.loadFile(
+			DB.INTERFACE_PATH +
+				'item/' +
+				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
+				'.bmp',
+			function (data) {
+				content
+					.find('.item[data-index="' + item.index + '"] .icon')
+					.css('backgroundImage', 'url(' + data + ')');
+			}
+		);`;
+
+const replaceStoreItem = `		// Add the icon once loaded
+		Client.loadFile(
+			DB.INTERFACE_PATH +
+				'item/' +
+				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
+				'.bmp',
+			function (data) {
+				content
+					.find('.item[data-index="' + item.index + '"] .icon')
+					.css('backgroundImage', 'url(' + data + ')');
+			},
+			function () {
+				content
+					.find('.item[data-index="' + item.index + '"] .icon')
+					.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.ITID + '.png)');
+			}
+		);`;
+
+for (const [oldStr, newStr] of [
+	[targetStoreItem.replace(/\n/g, '\r\n'), replaceStoreItem.replace(/\n/g, '\r\n')],
+	[targetStoreItem, replaceStoreItem]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 14 (NpcStore item icon Divine Pride fallback) applied');
+		break;
+	}
+}
+
+// Patch 15: NpcStore currency icon fallback to Divine Pride
+const targetStoreCurrency = `		Client.loadFile(
+			DB.INTERFACE_PATH +
+				'item/' +
+				(item.IsIdentified ? currencyit.identifiedResourceName : currencyit.unidentifiedResourceName) +
+				'.bmp',
+			function (data) {
+				content
+					.find('.item[data-index="' + item.index + '"] .currency_icon')
+					.css('backgroundImage', 'url(' + data + ')');
+			}
+		);`;
+
+const replaceStoreCurrency = `		Client.loadFile(
+			DB.INTERFACE_PATH +
+				'item/' +
+				(item.IsIdentified ? currencyit.identifiedResourceName : currencyit.unidentifiedResourceName) +
+				'.bmp',
+			function (data) {
+				content
+					.find('.item[data-index="' + item.index + '"] .currency_icon')
+					.css('backgroundImage', 'url(' + data + ')');
+			},
+			function () {
+				if (item.currencyITID) {
+					content
+						.find('.item[data-index="' + item.index + '"] .currency_icon')
+						.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.currencyITID + '.png)');
+				}
+			}
+		);`;
+
+for (const [oldStr, newStr] of [
+	[targetStoreCurrency.replace(/\n/g, '\r\n'), replaceStoreCurrency.replace(/\n/g, '\r\n')],
+	[targetStoreCurrency, replaceStoreCurrency]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 15 (NpcStore currency icon Divine Pride fallback) applied');
+		break;
+	}
+}
+
+// Patch 16: NpcStore drag image safety check
+const targetStoreDrag = `		img = new Image();
+		url = this.firstChild.style.backgroundImage.match(/\\(([^\\)]+)/)[1].replace(/"/g, '');
+		img.decoding = 'async';
+		img.src = url;`;
+
+const replaceStoreDrag = `		img = new Image();
+		var _bgM = this.firstChild && this.firstChild.style.backgroundImage ? this.firstChild.style.backgroundImage.match(/\\(([^\\)]+)/) : null;
+		url = _bgM ? _bgM[1].replace(/"/g, '') : '';
+		img.decoding = 'async';
+		if (url) img.src = url;`;
+
+for (const [oldStr, newStr] of [
+	[targetStoreDrag.replace(/\n/g, '\r\n'), replaceStoreDrag.replace(/\n/g, '\r\n')],
+	[targetStoreDrag, replaceStoreDrag]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 16 (NpcStore drag image safety check) applied');
+		break;
+	}
+}
+
+// Patch 17: ItemObject ground drop sprite fallback
+const targetItemObject = `		entity.files.body.spr = path + '.spr';
+		entity.files.body.act = path + '.act';
+
+		entity.files.shadow.size = 0.25;`;
+
+const replaceItemObject = `		var defaultDropPath = 'data/sprite/\xbe\xc6\xc0\xcc\xc5\xdb/\xb3\xaa\xc0\xcc\xc7\xc1';
+		entity.files.body.spr = path + '.spr';
+		entity.files.body.act = path + '.act';
+
+		Client.loadFile(path + '.spr', null, function () {
+			entity.files.body.spr = defaultDropPath + '.spr';
+			entity.files.body.act = defaultDropPath + '.act';
+		});
+		Client.loadFile(path + '.act', null, function () {
+			entity.files.body.spr = defaultDropPath + '.spr';
+			entity.files.body.act = defaultDropPath + '.act';
+		});
+
+		entity.files.shadow.size = 0.25;`;
+
+for (const [oldStr, newStr] of [
+	[targetItemObject.replace(/\n/g, '\r\n'), replaceItemObject.replace(/\n/g, '\r\n')],
+	[targetItemObject, replaceItemObject]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 17 (ItemObject ground drop sprite fallback) applied');
+		break;
+	}
+}
+
+// Patch 18: renderElement item drop frame-level fallback
+const targetRenderElement = `			// Get back sprite and act
+			var spr = Client.loadFile(files.spr);
+			var act = Client.loadFile(files.act);
+
+			// Not loaded yet
+			if (!spr || !act) {
+				return;
+			}`;
+
+const replaceRenderElement = `			// Get back sprite and act
+			var spr = Client.loadFile(files.spr);
+			var act = Client.loadFile(files.act);
+
+			if (entity.objecttype === 2 && (!spr || !act)) {
+				var defaultDropPath = 'data/sprite/\xbe\xc6\xc0\xcc\xc5\xdb/\xb3\xaa\xc0\xcc\xc7\xc1';
+				if (files.spr !== defaultDropPath + '.spr') {
+					files._fallbackCount = (files._fallbackCount || 0) + 1;
+					if (files._fallbackCount > 10) {
+						files.spr = defaultDropPath + '.spr';
+						files.act = defaultDropPath + '.act';
+						spr = Client.loadFile(files.spr);
+						act = Client.loadFile(files.act);
+					}
+				}
+			}
+
+			// Not loaded yet
+			if (!spr || !act) {
+				return;
+			}`;
+
+for (const [oldStr, newStr] of [
+	[targetRenderElement.replace(/\n/g, '\r\n'), replaceRenderElement.replace(/\n/g, '\r\n')],
+	[targetRenderElement, replaceRenderElement]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 18 (renderElement ground drop frame-level fallback) applied');
+		break;
+	}
+}
+
 fs.writeFileSync(onlinePath, content, 'utf8');
 
 // Patch ThreadEventHandler.js para desativar cache local no itemInfo.lua
@@ -573,40 +767,77 @@ if (fs.existsSync(threadPath)) {
 	let threadContent = fs.readFileSync(threadPath, 'utf8');
 	let threadPatches = 0;
 
-	// 1. Bypass FileSystem.getFile for itemInfo
-	const targetGet = `		FileSystem.getFile(filename, function onFound(file) {
-			const reader = new FileReader();
-			reader.onloadend = function onLoad(event) {
-				callback(event.target.result);
-			};
-			reader.readAsArrayBuffer(file);
-		}, function onNotFound() {
-			const path = filename.replace(/\\//g, "\\\\");
-			const fileList = FileManager.gameFiles;
-			const count = fileList.length;
-			for (let i = 0; i < count; ++i) if (fileList[i].getFile(path, callback)) return;
-			FileManager.getHTTP(filename, callback);
-		});`;
+	// 1. Bypass FileSystem.getFile for itemInfo in ThreadEventHandler.js
+	const targetGet = `\t\t// Search in filesystem
+\t\tFileSystem.getFile(
+\t\t\tfilename,
 
-	const replaceGet = `		const _skipFs = /itemInfo/i.test(filename);
-		const _onNotFound = function() {
-			const path = filename.replace(/\\//g, "\\\\");
-			const fileList = FileManager.gameFiles;
-			const count = fileList.length;
-			for (let i = 0; i < count; ++i) if (fileList[i].getFile(path, callback)) return;
-			FileManager.getHTTP(filename, callback);
-		};
-		if (!_skipFs) {
-			FileSystem.getFile(filename, function onFound(file) {
-				const reader = new FileReader();
-				reader.onloadend = function onLoad(event) {
-					callback(event.target.result);
-				};
-				reader.readAsArrayBuffer(file);
-			}, _onNotFound);
-		} else {
-			_onNotFound();
-		}`;
+\t\t\t// Found in file system, youhou !
+\t\t\tfunction onFound(file) {
+\t\t\t\tvar reader = new FileReader();
+\t\t\t\treader.onloadend = function onLoad(event) {
+\t\t\t\t\tcallback(event.target.result);
+\t\t\t\t};
+\t\t\t\treader.readAsArrayBuffer(file);
+\t\t\t},
+
+\t\t\t// Not found, fetching files
+\t\t\tfunction onNotFound() {
+\t\t\t\tvar i, count;
+\t\t\t\tvar fileList;
+\t\t\t\tvar path;
+
+\t\t\t\tpath = filename.replace(/\\//g, '\\\\');
+\t\t\t\tfileList = FileManager.gameFiles;
+\t\t\t\tcount = fileList.length;
+
+\t\t\t\tfor (i = 0; i < count; ++i) {
+\t\t\t\t\tif (fileList[i].getFile(path, callback)) {
+\t\t\t\t\t\treturn;
+\t\t\t\t\t}
+\t\t\t\t}
+
+\t\t\t\t// Not in GRFs ? Try to load it from
+\t\t\t\t// remote client host
+\t\t\t\tFileManager.getHTTP(filename, callback);
+\t\t\t}
+\t\t);`;
+
+	const replaceGet = `\t\t// Search in filesystem
+\t\tvar _isItemInfo = /itemInfo/i.test(filename);
+\t\tvar _onNotFound = function () {
+\t\t\tvar i, count;
+\t\t\tvar fileList;
+\t\t\tvar path;
+
+\t\t\tpath = filename.replace(/\\//g, '\\\\');
+\t\t\tfileList = FileManager.gameFiles;
+\t\t\tcount = fileList.length;
+
+\t\t\tfor (i = 0; i < count; ++i) {
+\t\t\t\tif (fileList[i].getFile(path, callback)) {
+\t\t\t\t\treturn;
+\t\t\t\t}
+\t\t\t}
+
+\t\t\tFileManager.getHTTP(filename, callback);
+\t\t};
+
+\t\tif (!_isItemInfo) {
+\t\t\tFileSystem.getFile(
+\t\t\t\tfilename,
+\t\t\t\tfunction onFound(file) {
+\t\t\t\t\tvar reader = new FileReader();
+\t\t\t\t\treader.onloadend = function onLoad(event) {
+\t\t\t\t\t\tcallback(event.target.result);
+\t\t\t\t\t};
+\t\t\t\t\treader.readAsArrayBuffer(file);
+\t\t\t\t},
+\t\t\t\t_onNotFound
+\t\t\t);
+\t\t} else {
+\t\t\t_onNotFound();
+\t\t}`;
 
 	for (const [oldStr, newStr] of [
 		[targetGet.replace(/\n/g, '\r\n'), replaceGet.replace(/\n/g, '\r\n')],
@@ -620,34 +851,33 @@ if (fs.existsSync(threadPath)) {
 		}
 	}
 
-	// 2. Fetch with cache: no-store and do not save itemInfo to local FileSystem
-	const targetHttp = `		if (typeof fetch !== "undefined") {
-			fetch(url).then(function(response) {
-				if (!response.ok) throw new Error("HTTP " + response.status);
-				if ((response.headers.get("content-type") || "").indexOf("text/html") !== -1) throw new Error("Received HTML instead of binary data (likely 404 page)");
-				return response.arrayBuffer();
-			}).then((buffer) => {
-				callback(buffer);
-				FileSystem.saveFile(filename, buffer);
-			}).catch(() => {
-				callback(null, "Can't get file");
-			});
-			return;
-		}`;
+	// 2. Fetch with cache busting and do not save itemInfo to local FileSystem
+	const targetHttp = `\t\tvar xhr = new XMLHttpRequest();
+\t\txhr.open('GET', url, true);
+\t\txhr.responseType = 'arraybuffer';
+\t\txhr.onload = function () {
+\t\t\tif (xhr.status == 200) {
+\t\t\t\tcallback(xhr.response);
+\t\t\t\tFileSystem.saveFile(filename, xhr.response);
+\t\t\t} else {
+\t\t\t\tcallback(null, "Can't get file");
+\t\t\t}
+\t\t};`;
 
-	const replaceHttp = `		if (typeof fetch !== "undefined") {
-			fetch(url, { cache: "no-store" }).then(function(response) {
-				if (!response.ok) throw new Error("HTTP " + response.status);
-				if ((response.headers.get("content-type") || "").indexOf("text/html") !== -1) throw new Error("Received HTML instead of binary data (likely 404 page)");
-				return response.arrayBuffer();
-			}).then((buffer) => {
-				callback(buffer);
-				if (!/itemInfo/i.test(filename)) FileSystem.saveFile(filename, buffer);
-			}).catch(() => {
-				callback(null, "Can't get file");
-			});
-			return;
-		}`;
+	const replaceHttp = `\t\tvar xhr = new XMLHttpRequest();
+\t\tvar requestUrl = /itemInfo/i.test(filename) ? url + '?_t=' + Date.now() : url;
+\t\txhr.open('GET', requestUrl, true);
+\t\txhr.responseType = 'arraybuffer';
+\t\txhr.onload = function () {
+\t\t\tif (xhr.status == 200) {
+\t\t\t\tcallback(xhr.response);
+\t\t\t\tif (!/itemInfo/i.test(filename)) {
+\t\t\t\t\tFileSystem.saveFile(filename, xhr.response);
+\t\t\t\t}
+\t\t\t} else {
+\t\t\t\tcallback(null, "Can't get file");
+\t\t\t}
+\t\t};`;
 
 	for (const [oldStr, newStr] of [
 		[targetHttp.replace(/\n/g, '\r\n'), replaceHttp.replace(/\n/g, '\r\n')],
@@ -656,7 +886,7 @@ if (fs.existsSync(threadPath)) {
 		if (threadContent.includes(oldStr)) {
 			threadContent = threadContent.replace(oldStr, newStr);
 			threadPatches++;
-			console.log('✓ Thread Patch 2 (fetch no-store & itemInfo no FileSystem.saveFile) applied');
+			console.log('✓ Thread Patch 2 (itemInfo no-cache & no FileSystem.saveFile) applied');
 			break;
 		}
 	}
@@ -668,3 +898,4 @@ if (fs.existsSync(threadPath)) {
 }
 
 console.log(`Done. Total patches applied: ${patches}`);
+
