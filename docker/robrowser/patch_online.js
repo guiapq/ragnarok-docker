@@ -176,11 +176,8 @@ for (const [oldStr, newStr] of [
 	[oldEq, newEq]
 ]) {
 	if (content.includes(oldStr)) {
-		let count = 0;
-		while (content.includes(oldStr)) {
-			content = content.replace(oldStr, newStr);
-			count++;
-		}
+		const count = content.split(oldStr).length - 1;
+		content = content.split(oldStr).join(newStr);
 		patches += count;
 		console.log(`✓ Patch 3 (Equipment window itemName strip) applied to ${count} places`);
 		break;
@@ -792,11 +789,8 @@ for (const [oldStr, newStr] of [
 	[targetInvDrag, replaceInvDrag]
 ]) {
 	if (content.includes(oldStr)) {
-		let count = 0;
-		while (content.includes(oldStr)) {
-			content = content.replace(oldStr, newStr);
-			count++;
-		}
+		const count = content.split(oldStr).length - 1;
+		content = content.split(oldStr).join(newStr);
 		patches += count;
 		console.log(`✓ Patch 18a (Safe Inventory dragstart) applied to ${count} places`);
 		break;
@@ -812,11 +806,8 @@ for (const [oldStr, newStr] of [
 	[targetInvDragEnd, replaceInvDragEnd]
 ]) {
 	if (content.includes(oldStr)) {
-		let count = 0;
-		while (content.includes(oldStr)) {
-			content = content.replace(oldStr, newStr);
-			count++;
-		}
+		const count = content.split(oldStr).length - 1;
+		content = content.split(oldStr).join(newStr);
 		patches += count;
 		console.log(`✓ Patch 18a-end (Safe Inventory dragend delay) applied to ${count} places`);
 		break;
