@@ -358,6 +358,212 @@ for (const [oldStr, newStr] of [
 	}
 }
 
+// Patch 8: ItemInfo & ItemCompare Collection image fallback to Divine Pride
+const targetCollection = `				'collection/' +
+				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
+				'.bmp',
+			function (data) {
+				ui.find('.collection').css('backgroundImage', 'url(' + data + ')');
+			}`;
+
+const replaceCollection = `				'collection/' +
+				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
+				'.bmp',
+			function (data) {
+				ui.find('.collection').css('backgroundImage', 'url(' + data + ')');
+			},
+			function () {
+				ui.find('.collection').css('backgroundImage', 'url(https://static.divine-pride.net/images/items/collection/' + item.ITID + '.png)');
+			}`;
+
+for (const [oldStr, newStr] of [
+	[targetCollection.replace(/\n/g, '\r\n'), replaceCollection.replace(/\n/g, '\r\n')],
+	[targetCollection, replaceCollection]
+]) {
+	if (content.includes(oldStr)) {
+		const count = content.split(oldStr).length - 1;
+		content = content.split(oldStr).join(newStr);
+		patches += count;
+		console.log(`✓ Patch 8 (ItemInfo/Compare Collection Divine Pride fallback) applied to ${count} places`);
+		break;
+	}
+}
+
+// Patch 9: Equipment & PlayerViewEquip item button fallback to Divine Pride
+const targetEquipBtn = `		Client.loadFile(
+			DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp',
+			function (data) {
+				this.ui
+					.find('.item[data-index="' + item.index + '"] button')
+					.css('backgroundImage', 'url(' + data + ')');
+			}.bind(this)
+		);`;
+
+const replaceEquipBtn = `		Client.loadFile(
+			DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp',
+			function (data) {
+				this.ui
+					.find('.item[data-index="' + item.index + '"] button')
+					.css('backgroundImage', 'url(' + data + ')');
+			}.bind(this),
+			function () {
+				this.ui
+					.find('.item[data-index="' + item.index + '"] button')
+					.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.ITID + '.png)');
+			}.bind(this)
+		);`;
+
+for (const [oldStr, newStr] of [
+	[targetEquipBtn.replace(/\n/g, '\r\n'), replaceEquipBtn.replace(/\n/g, '\r\n')],
+	[targetEquipBtn, replaceEquipBtn]
+]) {
+	if (content.includes(oldStr)) {
+		const count = content.split(oldStr).length - 1;
+		content = content.split(oldStr).join(newStr);
+		patches += count;
+		console.log(`✓ Patch 9 (Equipment Divine Pride fallback) applied to ${count} places`);
+		break;
+	}
+}
+
+// Patch 10: Equipment Switch item button fallback to Divine Pride
+const targetSwitchBtn = `		Client.loadFile(
+			DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp',
+			function (data) {
+				var button = this.ui.find('.item[data-index="' + item.index + '"] button');
+				button.css('backgroundImage', 'url(' + data + ')');
+				if (!inSwitchList) {
+					button.css('filter', 'grayscale(100%)');
+				}
+			}.bind(this)
+		);`;
+
+const replaceSwitchBtn = `		Client.loadFile(
+			DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp',
+			function (data) {
+				var button = this.ui.find('.item[data-index="' + item.index + '"] button');
+				button.css('backgroundImage', 'url(' + data + ')');
+				if (!inSwitchList) {
+					button.css('filter', 'grayscale(100%)');
+				}
+			}.bind(this),
+			function () {
+				var button = this.ui.find('.item[data-index="' + item.index + '"] button');
+				button.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.ITID + '.png)');
+				if (!inSwitchList) {
+					button.css('filter', 'grayscale(100%)');
+				}
+			}.bind(this)
+		);`;
+
+for (const [oldStr, newStr] of [
+	[targetSwitchBtn.replace(/\n/g, '\r\n'), replaceSwitchBtn.replace(/\n/g, '\r\n')],
+	[targetSwitchBtn, replaceSwitchBtn]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 10 (Equipment Switch Divine Pride fallback) applied');
+		break;
+	}
+}
+
+// Patch 11: Inventory item icon fallback to Divine Pride
+const targetInvIcon = `			Client.loadFile(
+				DB.INTERFACE_PATH +
+					'item/' +
+					(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
+					'.bmp',
+				function (data) {
+					content
+						.find('.item[data-index="' + item.index + '"] .icon')
+						.css('backgroundImage', 'url(' + data + ')');
+				}
+			);`;
+
+const replaceInvIcon = `			Client.loadFile(
+				DB.INTERFACE_PATH +
+					'item/' +
+					(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
+					'.bmp',
+				function (data) {
+					content
+						.find('.item[data-index="' + item.index + '"] .icon')
+						.css('backgroundImage', 'url(' + data + ')');
+				},
+				function () {
+					content
+						.find('.item[data-index="' + item.index + '"] .icon')
+						.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.ITID + '.png)');
+				}
+			);`;
+
+for (const [oldStr, newStr] of [
+	[targetInvIcon.replace(/\n/g, '\r\n'), replaceInvIcon.replace(/\n/g, '\r\n')],
+	[targetInvIcon, replaceInvIcon]
+]) {
+	if (content.includes(oldStr)) {
+		const count = content.split(oldStr).length - 1;
+		content = content.split(oldStr).join(newStr);
+		patches += count;
+		console.log(`✓ Patch 11 (Inventory Divine Pride fallback) applied to ${count} places`);
+		break;
+	}
+}
+
+// Patch 12: ItemObtain item icon fallback to Divine Pride
+const targetObtain = `		Client.loadFile(
+			DB.INTERFACE_PATH + 'item/' + resource + '.bmp',
+			function (url) {
+				this.ui.find('img.' + item.ITID).attr('src', url);
+			}.bind(this)
+		);`;
+
+const replaceObtain = `		Client.loadFile(
+			DB.INTERFACE_PATH + 'item/' + resource + '.bmp',
+			function (url) {
+				this.ui.find('img.' + item.ITID).attr('src', url);
+			}.bind(this),
+			function () {
+				this.ui.find('img.' + item.ITID).attr('src', 'https://static.divine-pride.net/images/items/item/' + item.ITID + '.png');
+			}.bind(this)
+		);`;
+
+for (const [oldStr, newStr] of [
+	[targetObtain.replace(/\n/g, '\r\n'), replaceObtain.replace(/\n/g, '\r\n')],
+	[targetObtain, replaceObtain]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 12 (ItemObtain Divine Pride fallback) applied');
+		break;
+	}
+}
+
+// Patch 13: Cart & Storage item icon fallback to Divine Pride
+const targetStorage = `			Client.loadFile(DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp', function (data) {
+				content.find('.item[data-index="' + i + '"] .icon').css('backgroundImage', 'url(' + data + ')');
+			});`;
+
+const replaceStorage = `			Client.loadFile(DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp', function (data) {
+				content.find('.item[data-index="' + i + '"] .icon').css('backgroundImage', 'url(' + data + ')');
+			}, function () {
+				content.find('.item[data-index="' + i + '"] .icon').css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + (it.ITID || item.ITID || i) + '.png)');
+			});`;
+
+for (const [oldStr, newStr] of [
+	[targetStorage.replace(/\n/g, '\r\n'), replaceStorage.replace(/\n/g, '\r\n')],
+	[targetStorage, replaceStorage]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 13 (Storage/Cart Divine Pride fallback) applied');
+		break;
+	}
+}
+
 fs.writeFileSync(onlinePath, content, 'utf8');
 
 // Patch ThreadEventHandler.js para desativar cache local no itemInfo.lua
