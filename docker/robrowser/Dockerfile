@@ -27,8 +27,12 @@ RUN git config --global http.lowSpeedLimit 1000 \
 
 WORKDIR /opt/roBrowserLegacy
 
-# instalar dependências
-RUN timeout 600 npm install --legacy-peer-deps
+# evitar download de binários desktop desnecessários (Electron 120MB)
+ENV ELECTRON_SKIP_BINARY_DOWNLOAD=1
+
+# remover dependências desnecessárias de desktop (Electron) e instalar dependências do bundler web
+RUN npm pkg delete devDependencies.electron devDependencies.electron-builder 2>/dev/null || true \
+    && timeout 180 npm install --legacy-peer-deps
 
 # build
 RUN timeout 300 npm run build -- -O -T -H
