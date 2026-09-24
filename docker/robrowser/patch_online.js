@@ -758,6 +758,243 @@ for (const [oldStr, newStr] of [
 	}
 }
 
+// Patch 19: BGM CDN fallback & audio play error recovery
+const targetBgmLoad = `\t\t// load the file.
+\t\tif (Preferences.BGM.play) {
+\t\t\tClient.loadFile('BGM/' + filename, function (url) {
+\t\t\t\tBGM.load(url);
+\t\t\t});
+\t\t}
+\t};
+
+\t/**
+\t * Load the audio file
+\t *
+\t * @param {string} url (HTTP / DATA URI or BLOB)
+\t */
+\tBGM.load = function load(url) {
+\t\tif (!Preferences.BGM.play) {
+\t\t\treturn;
+\t\t}
+
+\t\t// Add support for other extensions, only supported with
+\t\t// remote audio files.
+\t\tif (!url.match(/^(blob|data):/)) {
+\t\t\turl = url.replace(/mp3$/i, BGM.extension);
+\t\t}
+
+\t\tBGM.audio.src = url;
+\t\tBGM.audio.volume = this.volume;
+\t\tBGM.audio.play().catch(error => {
+\t\t\tconsole.error('Failed to play "BGM/' + this.filename + '": ' + error.message);
+\t\t});
+\t};`;
+
+const replaceBgmLoad = `\t\t// load the file.
+\t\tif (Preferences.BGM.play) {
+\t\t\tvar bgmTrackLoaded = false;
+\t\t\ttry {
+\t\t\t\tClient.loadFile('BGM/' + filename, function (url) {
+\t\t\t\t\tbgmTrackLoaded = true;
+\t\t\t\t\tBGM.load(url);
+\t\t\t\t}, function () {
+\t\t\t\t\tif (!bgmTrackLoaded) {
+\t\t\t\t\t\tBGM.load('https://grf.robrowser.com/BGM/' + filename);
+\t\t\t\t\t}
+\t\t\t\t});
+\t\t\t} catch (e) {
+\t\t\t\tBGM.load('https://grf.robrowser.com/BGM/' + filename);
+\t\t\t}
+\t\t}
+\t};
+
+\t/**
+\t * Load the audio file (with roBrowser CDN fallback)
+\t *
+\t * @param {string} url (HTTP / DATA URI or BLOB)
+\t */
+\tBGM.load = function load(url) {
+\t\tif (!Preferences.BGM.play) {
+\t\t\treturn;
+\t\t}
+
+\t\tvar cleanFile = (this.filename || '01.mp3').replace(/^.*[\\\\/]/, '');
+\t\tvar cdnUrl = 'https://grf.robrowser.com/BGM/' + cleanFile;
+
+\t\t// If it is not a local blob/data from GRF, use CDN directly
+\t\tif (!url || !url.match(/^(blob|data):/)) {
+\t\t\turl = cdnUrl;
+\t\t}
+
+\t\tvar audio = BGM.audio;
+\t\tvar playTarget = function(src) {
+\t\t\taudio.src = src;
+\t\t\taudio.volume = BGM.volume;
+\t\t\tvar promise = audio.play();
+\t\t\tif (promise && promise.catch) {
+\t\t\t\tpromise.catch(function(err) {
+\t\t\t\t\tconsole.warn('[BGM] Play error on ' + src + ':', err.message);
+\t\t\t\t\tif (src !== cdnUrl) {
+\t\t\t\t\t\tconsole.log('[BGM] Falling back to CDN: ' + cdnUrl);
+\t\t\t\t\t\tplayTarget(cdnUrl);
+\t\t\t\t\t}
+\t\t\t\t});
+\t\t\t}
+\t\t};
+
+\t\taudio.onerror = function() {
+\t\t\tif (audio.src !== cdnUrl) {
+\t\t\t\tconsole.log('[BGM] Audio element error, falling back to CDN: ' + cdnUrl);
+\t\t\t\tplayTarget(cdnUrl);
+\t\t\t}
+\t\t};
+
+\t\tplayTarget(url);
+\t};`;
+
+for (const [oldStr, newStr] of [
+	[targetBgmLoad.replace(/\n/g, '\r\n'), replaceBgmLoad.replace(/\n/g, '\r\n')],
+	[targetBgmLoad, replaceBgmLoad]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 19 (BGM CDN fallback & audio play error recovery) applied');
+		break;
+	}
+}
+
+// Patch 20: Thematic Map BGM Groups & Randomization System
+const targetBgmMap = `\t/**
+\t * Once the map finished to load
+\t */
+\tfunction onMapComplete(success, error) {
+\t\tvar worldResource = this.currentMap.replace(/\\.gat$/i, '.rsw');
+\t\tvar mapInfo = DB.getMap(worldResource);
+
+\t\t// Problem during loading ?
+\t\tif (!success) {
+\t\t\tUIManager.showErrorBox(error).ui.css('zIndex', 1000);
+\t\t\treturn;
+\t\t}
+
+\t\t// Play BGM
+\t\tBGM.play((mapInfo && mapInfo.mp3) || '01.mp3');`;
+
+const replaceBgmMap = `\t/**
+\t * Thematic BGM Groups & Randomization System
+\t */
+\tvar BGM_THEMES = {
+\t\ttowns: ['01.mp3', '06.mp3', '08.mp3', '09.mp3', '10.mp3', '11.mp3', '13.mp3', '26.mp3', '39.mp3', '42.mp3', '60.mp3', '61.mp3', '83.mp3', '88.mp3', '94.mp3', '98.mp3', '106.mp3'],
+\t\tfields: ['04.mp3', '05.mp3', '12.mp3', '21.mp3', '22.mp3', '29.mp3', '31.mp3', '33.mp3', '34.mp3', '35.mp3', '37.mp3', '41.mp3', '80.mp3', '85.mp3', '90.mp3', '96.mp3', '105.mp3'],
+\t\tdungeons: ['02.mp3', '15.mp3', '28.mp3', '30.mp3', '36.mp3', '45.mp3', '56.mp3', '78.mp3', '97.mp3', '108.mp3', '110.mp3'],
+\t\tdesert: ['07.mp3', '19.mp3', '20.mp3', '24.mp3', '27.mp3', '46.mp3', '93.mp3'],
+\t\tspooky: ['40.mp3', '43.mp3', '48.mp3', '66.mp3', '71.mp3', '84.mp3', '87.mp3'],
+\t\tsnow: ['16.mp3', '17.mp3', '18.mp3', '23.mp3', '70.mp3', '74.mp3', '79.mp3'],
+\t\toriental: ['09.mp3', '54.mp3', '64.mp3', '65.mp3', '68.mp3', '69.mp3', '72.mp3', '73.mp3', '81.mp3', '82.mp3'],
+\t\tvolcano: ['03.mp3', '15.mp3', '52.mp3', '107.mp3'],
+\t\tancient_tech: ['38.mp3', '51.mp3', '53.mp3', '57.mp3', '59.mp3', '77.mp3', '86.mp3', '89.mp3', '91.mp3', '92.mp3', '104.mp3'],
+\t\tbattle_boss: ['03.mp3', '47.mp3', '52.mp3', '55.mp3', '58.mp3', '62.mp3', '95.mp3', '99.mp3'],
+\t\ttropical: ['10.mp3', '14.mp3', '49.mp3', '63.mp3', '76.mp3', '106.mp3']
+\t};
+
+\tvar BGM_THEME_RULES = [
+\t\t{ theme: 'battle_boss', regex: /(^|_)(guild_|gld_|gld2_|pvp_|arena|bossnia|endless|poring_w|force_|te_prt|te_aldeg|_gld|cas\\\\d|g_room|ordeal|prt_are|battle|camp|nguild_|siege|_castle)/i },
+\t\t{ theme: 'volcano', regex: /(^|_)(mag_dun|thor_v|thor_camp)/i },
+\t\t{ theme: 'snow', regex: /(^|_)(xmas|ice_dun|toy_factory)/i },
+\t\t{ theme: 'desert', regex: /(^|_)(moc_fild|moc_pryd|moc_ruins|in_sphinx|morocc|moc_castle|in_moc)/i },
+\t\t{ theme: 'spooky', regex: /(^|_)(gl_|glast|niflheim|nif_|abbey|nameless|lhz_dun0[3-4]|monastery|sec_pri)/i },
+\t\t{ theme: 'tropical', regex: /(^|_)(comodo|cmd_|jawaii|beach_dun|alb2trea|umbala)/i },
+\t\t{ theme: 'oriental', regex: /(^|_)(amatsu|ama_|gonryun|gon_|louyang|lou_|ayothaya|ayo_)/i },
+\t\t{ theme: 'ancient_tech', regex: /(^|_)(juperos|jupe_|c_tower|alde_dun|kh_|kiel|tha_t|thana|ra_san|odin_tem|abyss|nyd_dun|yggdrasil|valkyrie|himinn|gefenia)/i },
+\t\t{ theme: 'dungeons', regex: /(^|_)(prt_sewb|pay_dun|gef_dun|anthell|treasure|orcsdun|mjo_dun|tur_dun|bra_dun|mosk_dun|ein_dun|dic_dun|man_dun|dew_dun|sewer|cave|dun|izlu2dun|in_orcs)/i },
+\t\t{ theme: 'fields', regex: /(^|_)(fild|prt_maze|pay_arche|mjolnir|new_\\\\d|job_|hunter_|knight_|priest_|sword_|wizard_|assassin_|quiz)/i },
+\t\t{ theme: 'towns', regex: /(^|_)(prontera|prt_|geffen|gef_|payon|pay_|alberta|alb_|izlude|izl_|aldebaran|alde|yuno|lutie|einbroch|einbech|ein_|lighthalzen|lhz_|hugel|hu_|rachel|ra_|veins|ve_|moscovia|mosk_|brasilis|bra_|splendide|manuk|mid_camp|mora|dewata|malaya|lasagna|alb_ship|sec_in|gef_tower|airplane|monk_in)|_in$|_in\\\\d|in_/i }
+\t];
+
+\tvar BGM_TRACK_TO_THEME = null;
+\tfunction getThematicMapBgm(mapName, defaultMp3) {
+\t\tif (!BGM_TRACK_TO_THEME) {
+\t\t\tBGM_TRACK_TO_THEME = {};
+\t\t\tfor (var k in BGM_THEMES) {
+\t\t\t\tif (BGM_THEMES.hasOwnProperty(k)) {
+\t\t\t\t\tvar arr = BGM_THEMES[k];
+\t\t\t\t\tfor (var i = 0; i < arr.length; i++) {
+\t\t\t\t\t\tif (!BGM_TRACK_TO_THEME[arr[i]]) {
+\t\t\t\t\t\t\tBGM_TRACK_TO_THEME[arr[i]] = k;
+\t\t\t\t\t\t}
+\t\t\t\t\t}
+\t\t\t\t}
+\t\t\t}
+\t\t}
+
+\t\tvar cleanMap = (mapName || '').replace(/\\.(gat|rsw)$/i, '').toLowerCase();
+\t\tvar chosenTheme = null;
+
+\t\tfor (var r = 0; r < BGM_THEME_RULES.length; r++) {
+\t\t\tif (BGM_THEME_RULES[r].regex.test(cleanMap)) {
+\t\t\t\tchosenTheme = BGM_THEME_RULES[r].theme;
+\t\t\t\tbreak;
+\t\t\t}
+\t\t}
+
+\t\tif (!chosenTheme && defaultMp3) {
+\t\t\tvar cleanMp3 = defaultMp3.replace(/^.*[\\\\/]/, '').toLowerCase();
+\t\t\tif (cleanMp3 && BGM_TRACK_TO_THEME[cleanMp3]) {
+\t\t\t\tchosenTheme = BGM_TRACK_TO_THEME[cleanMp3];
+\t\t\t}
+\t\t}
+
+\t\tif (!chosenTheme) {
+\t\t\tchosenTheme = 'fields';
+\t\t}
+
+\t\tvar pool = BGM_THEMES[chosenTheme] || BGM_THEMES.towns;
+\t\tvar currentPlaying = (BGM.filename || '').replace(/^.*[\\\\/]/, '').toLowerCase();
+\t\tvar candidates = pool.filter(function (t) { return t.toLowerCase() !== currentPlaying; });
+\t\tif (!candidates.length) {
+\t\t\tcandidates = pool;
+\t\t}
+
+\t\tvar selected = candidates[Math.floor(Math.random() * candidates.length)];
+\t\tconsole.log('[BGM] Thematic Randomizer: Map="' + mapName + '" -> Theme="' + chosenTheme + '" -> Track="' + selected + '" (Default: ' + (defaultMp3 || 'none') + ')');
+\t\treturn selected;
+\t}
+
+\t/**
+\t * Once the map finished to load
+\t */
+\tfunction onMapComplete(success, error) {
+\t\tvar worldResource = this.currentMap.replace(/\\.gat$/i, '.rsw');
+\t\tvar mapInfo = DB.getMap(worldResource);
+
+\t\t// Problem during loading ?
+\t\tif (!success) {
+\t\t\tUIManager.showErrorBox(error).ui.css('zIndex', 1000);
+\t\t\treturn;
+\t\t}
+
+\t\t// Play BGM (Thematic Randomization)
+\t\tvar isSameMap = (this._currentBgmMap === this.currentMap);
+\t\tthis._currentBgmMap = this.currentMap;
+
+\t\tif (!isSameMap || !BGM.audio || BGM.audio.paused) {
+\t\t\tvar selectedBgm = getThematicMapBgm(this.currentMap, mapInfo && mapInfo.mp3);
+\t\t\tBGM.play(selectedBgm);
+\t\t}`;
+
+for (const [oldStr, newStr] of [
+	[targetBgmMap.replace(/\n/g, '\r\n'), replaceBgmMap.replace(/\n/g, '\r\n')],
+	[targetBgmMap, replaceBgmMap]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 20 (Thematic Map BGM Groups & Randomization System) applied');
+		break;
+	}
+}
+
 fs.writeFileSync(onlinePath, content, 'utf8');
 
 // Patch ThreadEventHandler.js para desativar cache local no itemInfo.lua
