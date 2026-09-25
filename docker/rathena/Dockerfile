@@ -8,7 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN echo 'Acquire::http::Timeout "15";' > /etc/apt/apt.conf.d/99timeout && \
     echo 'Acquire::ftp::Timeout "15";' >> /etc/apt/apt.conf.d/99timeout && \
     echo 'Acquire::Retries "2";' >> /etc/apt/apt.conf.d/99timeout && \
-    echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true
+    echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true && \
+    (sed -i 's|deb.debian.org/debian|debian.c3sl.ufpr.br/debian|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || true)
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -68,7 +69,8 @@ ENV FIXED_ADMIN_GROUP=99
 RUN echo 'Acquire::http::Timeout "15";' > /etc/apt/apt.conf.d/99timeout && \
     echo 'Acquire::ftp::Timeout "15";' >> /etc/apt/apt.conf.d/99timeout && \
     echo 'Acquire::Retries "2";' >> /etc/apt/apt.conf.d/99timeout && \
-    echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true
+    echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true && \
+    (sed -i 's|deb.debian.org/debian|debian.c3sl.ufpr.br/debian|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || true)
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \

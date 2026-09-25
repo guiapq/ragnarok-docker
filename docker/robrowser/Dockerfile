@@ -2,7 +2,8 @@ FROM node:22-bookworm-slim
 
 WORKDIR /opt
 
-RUN echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true
+RUN echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true && \
+    (sed -i 's|deb.debian.org/debian|debian.c3sl.ufpr.br/debian|g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || true)
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \

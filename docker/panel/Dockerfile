@@ -1,7 +1,8 @@
 FROM php:8.2-cli-alpine
 
-# Dependências básicas do sistema
-RUN echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true
+# Dependências básicas do sistema e mirror de baixa latência (UFPR C3SL)
+RUN echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true \
+    && sed -i 's|dl-cdn.alpinelinux.org/alpine|alpinelinux.c3sl.ufpr.br|g' /etc/apk/repositories
 
 RUN timeout 120 apk add --no-cache \
     bash \
@@ -20,7 +21,7 @@ ARG BUILD_JOBS=""
 RUN NPROC=${BUILD_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN || echo 4)} \
     && export MAKEFLAGS="-j${NPROC}" \
     && echo "=== Compilando extensões essenciais do PHP utilizando ${NPROC} threads ===" \
-    && timeout 120 install-php-extensions \
+    && timeout 300 install-php-extensions \
     pdo_mysql \
     bcmath \
     intl \
