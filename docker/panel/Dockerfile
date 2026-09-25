@@ -3,30 +3,28 @@ FROM php:8.2-cli-alpine
 # Dependências básicas do sistema
 RUN echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true
 
-RUN timeout 240 apk add --no-cache \
+RUN timeout 120 apk add --no-cache \
     bash \
     curl \
     git \
     unzip \
     libzip-dev \
     icu-dev \
-    libpng-dev \
     mysql-client
 
-# Instalador de extensões PHP de alta performance
-ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+# Instalador de extensões PHP com versão pinada (evita invalidar o cache Docker)
+ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/download/2.5.3/install-php-extensions /usr/local/bin/
 
 ARG BUILD_JOBS=""
 
 RUN NPROC=${BUILD_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN || echo 4)} \
     && export MAKEFLAGS="-j${NPROC}" \
-    && echo "=== Compilando extensões PHP utilizando ${NPROC} threads ===" \
-    && timeout 600 install-php-extensions \
+    && echo "=== Compilando extensões essenciais do PHP utilizando ${NPROC} threads ===" \
+    && timeout 120 install-php-extensions \
     pdo_mysql \
     bcmath \
     intl \
     zip \
-    gd \
     opcache \
     pcntl
 
