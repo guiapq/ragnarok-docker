@@ -2,9 +2,10 @@
 """
 tools/allow_all_drops.py
 
-Permite que todos os itens possam ser derrubados no chão (Drop)
-removendo a restrição de drop (bit 1 da TradeMask) em db/re/item_trade.txt.
-NÃO altera item_db.txt para evitar corrupção do valor de Ataque (ATK).
+Permite que todos os itens possam ser:
+1. Derrubados no chão / jogados fora (Drop) -> remove bit 1 da TradeMask
+2. Vendidos em lojas de NPCs -> remove bit 8 da TradeMask
+Aplica tanto em db/pre-re/item_trade.txt quanto db/re/item_trade.txt.
 """
 
 import os
@@ -13,33 +14,23 @@ import sys
 
 def load_env():
     env = {}
-    with open(".env.rando") as f:
-        for line in f:
-            if "=" in line and not line.startswith("#"):
-                k, v = line.strip().split("=", 1)
-                env[k] = v
+    if os.path.isfile(".env.rando"):
+        with open(".env.rando") as f:
+            for line in f:
+                if "=" in line and not line.startswith("#"):
+                    k, v = line.strip().split("=", 1)
+                    env[k] = v
     return env
 
 
-def main():
-    env = load_env()
-    root = env.get("RATHENA_ROOT", "data")
-    trade_db_path = f"{root}/db/re/item_trade.txt"
-
-    if not os.path.isfile(trade_db_path):
-        fallback = "data_base/db/re/item_trade.txt"
-        if os.path.isfile(fallback):
-            trade_db_path = fallback
-        else:
-            print(f"[WARN] item_trade.txt não encontrado em {trade_db_path}. Pulando.")
-            return
-
-    print("Removendo restrições de drop em item_trade.txt...")
+def process_trade_file(filepath):
+    if not os.path.isfile(filepath):
+        return 0
 
     lines = []
     modified_count = 0
 
-    with open(trade_db_path, "r", encoding="latin-1", errors="ignore") as f:
+    with open(filepath, "r", encoding="latin-1", errors="ignore") as f:
         for line in f:
             line_str = line.strip()
             if not line_str or line_str.startswith("//"):
@@ -56,8 +47,9 @@ def main():
                 try:
                     trade_mask = int(cols[1])
                     # Bit 1 = item não pode ser derrubado (1 - item can't be dropped)
-                    if trade_mask & 1:
-                        trade_mask &= ~1  # Remove a restrição de drop
+                    # Bit 8 = item não pode ser vendido a NPCs (8 - item can't be sold to npcs)
+                    if (trade_mask & 1) or (trade_mask & 8):
+                        trade_mask &= ~(1 | 8)  # Remove drop e sell restrictions
                         cols[1] = str(trade_mask)
                         modified_count += 1
                         line = f"{','.join(cols)}{comment}\n"
@@ -66,11 +58,41 @@ def main():
 
             lines.append(line if line.endswith("\n") else line + "\n")
 
-    with open(trade_db_path, "w", encoding="latin-1") as f:
+    with open(filepath, "w", encoding="latin-1") as f:
         f.writelines(lines)
 
-    print(f"Sucesso: {modified_count} itens tiveram sua restrição de drop removida.")
+    return modified_count
+
+
+def main():
+    env = load_env()
+    root = env.get("RATHENA_ROOT", "data_base")
+
+    targets = [
+        f"{root}/db/pre-re/item_trade.txt",
+        f"{root}/db/re/item_trade.txt",
+        "data_base/db/pre-re/item_trade.txt",
+        "data_base/db/re/item_trade.txt",
+        "data/db/pre-re/item_trade.txt",
+        "data/db/re/item_trade.txt",
+    ]
+
+    seen = set()
+    total_modified = 0
+
+    print("Removendo restrições de drop no chão (bit 1) e venda em NPCs (bit 8) em item_trade.txt...")
+
+    for path in targets:
+        real_path = os.path.realpath(path) if os.path.exists(path) else path
+        if os.path.isfile(path) and real_path not in seen:
+            seen.add(real_path)
+            mod = process_trade_file(path)
+            total_modified += mod
+            print(f"  [item_trade] {path}: {mod} itens liberados para drop e venda.")
+
+    print(f"Sucesso: {total_modified} itens liberados no total.")
 
 
 if __name__ == "__main__":
     main()
+
