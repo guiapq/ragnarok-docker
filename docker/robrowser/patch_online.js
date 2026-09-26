@@ -1392,126 +1392,80 @@ if (fs.existsSync(threadPath)) {
 	let threadContent = fs.readFileSync(threadPath, 'utf8');
 	let threadPatches = 0;
 
-	// 1. Bypass FileSystem.getFile for itemInfo in ThreadEventHandler.js
-	const targetGet = `\t\t// Search in filesystem
-\t\tFileSystem.getFile(
-\t\t\tfilename,
-
-\t\t\t// Found in file system, youhou !
-\t\t\tfunction onFound(file) {
-\t\t\t\tvar reader = new FileReader();
-\t\t\t\treader.onloadend = function onLoad(event) {
-\t\t\t\t\tcallback(event.target.result);
-\t\t\t\t};
-\t\t\t\treader.readAsArrayBuffer(file);
-\t\t\t},
-
-\t\t\t// Not found, fetching files
-\t\t\tfunction onNotFound() {
-\t\t\t\tvar i, count;
-\t\t\t\tvar fileList;
-\t\t\t\tvar path;
-
-\t\t\t\tpath = filename.replace(/\\//g, '\\\\');
-\t\t\t\tfileList = FileManager.gameFiles;
-\t\t\t\tcount = fileList.length;
-
-\t\t\t\tfor (i = 0; i < count; ++i) {
-\t\t\t\t\tif (fileList[i].getFile(path, callback)) {
-\t\t\t\t\t\treturn;
-\t\t\t\t\t}
-\t\t\t\t}
-
-\t\t\t\t// Not in GRFs ? Try to load it from
-\t\t\t\t// remote client host
-\t\t\t\tFileManager.getHTTP(filename, callback);
-\t\t\t}
-\t\t);`;
-
-	const replaceGet = `\t\t// Search in filesystem
-\t\tvar _isItemInfo = /itemInfo/i.test(filename);
-\t\tvar _onNotFound = function () {
-\t\t\tvar i, count;
-\t\t\tvar fileList;
-\t\t\tvar path;
-
-\t\t\tpath = filename.replace(/\\//g, '\\\\');
-\t\t\tfileList = FileManager.gameFiles;
-\t\t\tcount = fileList.length;
-
-\t\t\tfor (i = 0; i < count; ++i) {
-\t\t\t\tif (fileList[i].getFile(path, callback)) {
-\t\t\t\t\treturn;
-\t\t\t\t}
-\t\t\t}
-
-\t\t\tFileManager.getHTTP(filename, callback);
-\t\t};
-
-\t\tif (!_isItemInfo) {
-\t\t\tFileSystem.getFile(
-\t\t\t\tfilename,
-\t\t\t\tfunction onFound(file) {
-\t\t\t\t\tvar reader = new FileReader();
-\t\t\t\t\treader.onloadend = function onLoad(event) {
-\t\t\t\t\t\tcallback(event.target.result);
-\t\t\t\t\t};
-\t\t\t\t\treader.readAsArrayBuffer(file);
-\t\t\t\t},
-\t\t\t\t_onNotFound
-\t\t\t);
-\t\t} else {
-\t\t\t_onNotFound();
-\t\t}`;
+	// 1. Bypass FileSystem.getFile para itemInfo no FileManager.get
+	const targetGetExact = `	static get(filename, callback) {
+		filename = filename.replace(/^\\s+|\\s+$/g, "");`;
+	const replaceGetExact = `	static get(filename, callback) {
+		filename = filename.replace(/^\\s+|\\s+$/g, "");
+		if (/itemInfo/i.test(filename)) {
+			FileManager.getHTTP(filename, callback);
+			return;
+		}`;
 
 	for (const [oldStr, newStr] of [
-		[targetGet.replace(/\n/g, '\r\n'), replaceGet.replace(/\n/g, '\r\n')],
-		[targetGet, replaceGet]
+		[targetGetExact.replace(/\n/g, '\r\n'), replaceGetExact.replace(/\n/g, '\r\n')],
+		[targetGetExact, replaceGetExact]
 	]) {
 		if (threadContent.includes(oldStr)) {
 			threadContent = threadContent.replace(oldStr, newStr);
 			threadPatches++;
-			console.log('✓ Thread Patch 1 (itemInfo bypass FileSystem.getFile) applied');
+			console.log('✓ Thread Patch 1 (FileManager.get bypass FileSystem for itemInfo) applied');
 			break;
 		}
 	}
 
-	// 2. Fetch with cache busting and do not save itemInfo to local FileSystem
-	const targetHttp = `\t\tvar xhr = new XMLHttpRequest();
-\t\txhr.open('GET', url, true);
-\t\txhr.responseType = 'arraybuffer';
-\t\txhr.onload = function () {
-\t\t\tif (xhr.status == 200) {
-\t\t\t\tcallback(xhr.response);
-\t\t\t\tFileSystem.saveFile(filename, xhr.response);
-\t\t\t} else {
-\t\t\t\tcallback(null, "Can't get file");
-\t\t\t}
-\t\t};`;
-
-	const replaceHttp = `\t\tvar xhr = new XMLHttpRequest();
-\t\tvar requestUrl = /itemInfo/i.test(filename) ? url + '?_t=' + Date.now() : url;
-\t\txhr.open('GET', requestUrl, true);
-\t\txhr.responseType = 'arraybuffer';
-\t\txhr.onload = function () {
-\t\t\tif (xhr.status == 200) {
-\t\t\t\tcallback(xhr.response);
-\t\t\t\tif (!/itemInfo/i.test(filename)) {
-\t\t\t\t\tFileSystem.saveFile(filename, xhr.response);
-\t\t\t\t}
-\t\t\t} else {
-\t\t\t\tcallback(null, "Can't get file");
-\t\t\t}
-\t\t};`;
+	// 2. Cache busting no getHTTP
+	const targetHttpExact = `	static getHTTP(filename, callback) {
+		filename = filename.replace(/\\\\/g, "/");
+		let url = filename.replace(/[^/]+/g, (a) => {
+			return encodeURIComponent(a);
+		});`;
+	const replaceHttpExact = `	static getHTTP(filename, callback) {
+		filename = filename.replace(/\\\\/g, "/");
+		let url = filename.replace(/[^/]+/g, (a) => {
+			return encodeURIComponent(a);
+		});
+		if (/itemInfo/i.test(filename)) {
+			url += (url.indexOf("?") === -1 ? "?" : "&") + "_t=" + Date.now();
+		}`;
 
 	for (const [oldStr, newStr] of [
-		[targetHttp.replace(/\n/g, '\r\n'), replaceHttp.replace(/\n/g, '\r\n')],
-		[targetHttp, replaceHttp]
+		[targetHttpExact.replace(/\n/g, '\r\n'), replaceHttpExact.replace(/\n/g, '\r\n')],
+		[targetHttpExact, replaceHttpExact]
 	]) {
 		if (threadContent.includes(oldStr)) {
 			threadContent = threadContent.replace(oldStr, newStr);
 			threadPatches++;
-			console.log('✓ Thread Patch 2 (itemInfo no-cache & no FileSystem.saveFile) applied');
+			console.log('✓ Thread Patch 2 (getHTTP cache busting for itemInfo) applied');
+			break;
+		}
+	}
+
+	// 3. Não salvar itemInfo no FileSystem (tanto no fetch quanto no xhr)
+	const targetSaveFetch = `callback(buffer);\n\t\t\t\tFileSystem.saveFile(filename, buffer);`;
+	const replaceSaveFetch = `callback(buffer);\n\t\t\t\tif (!/itemInfo/i.test(filename)) FileSystem.saveFile(filename, buffer);`;
+	for (const [oldStr, newStr] of [
+		[targetSaveFetch.replace(/\n/g, '\r\n'), replaceSaveFetch.replace(/\n/g, '\r\n')],
+		[targetSaveFetch, replaceSaveFetch]
+	]) {
+		if (threadContent.includes(oldStr)) {
+			threadContent = threadContent.replace(oldStr, newStr);
+			threadPatches++;
+			console.log('✓ Thread Patch 3 (Do not save itemInfo to local FileSystem via fetch) applied');
+			break;
+		}
+	}
+
+	const targetSaveXhr = `callback(xhr.response);\n\t\t\t\tFileSystem.saveFile(filename, xhr.response);`;
+	const replaceSaveXhr = `callback(xhr.response);\n\t\t\t\tif (!/itemInfo/i.test(filename)) FileSystem.saveFile(filename, xhr.response);`;
+	for (const [oldStr, newStr] of [
+		[targetSaveXhr.replace(/\n/g, '\r\n'), replaceSaveXhr.replace(/\n/g, '\r\n')],
+		[targetSaveXhr, replaceSaveXhr]
+	]) {
+		if (threadContent.includes(oldStr)) {
+			threadContent = threadContent.replace(oldStr, newStr);
+			threadPatches++;
+			console.log('✓ Thread Patch 4 (Do not save itemInfo to local FileSystem via xhr) applied');
 			break;
 		}
 	}
