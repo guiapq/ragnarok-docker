@@ -90,29 +90,23 @@ cat <<EOF > $RATHENA/npc/custom/starter_items.txt
 
 OnPCLoginEvent:
 	if (#starter_items_given == 0) {
-		getitem 611,500;   // Lupa (peso 0)
-		dispbottom "Você recebeu 500 lupas iniciais (peso zero)!";
-		getitem 501,100;   // Poção Vermelha (peso leve)
-		getitem 504,30;    // Poção Branca (peso leve)
-		getitem 505,20;    // Poção Azul (peso leve)
-		getitem 601,60;    // Asa de Mosca (peso leve)
-		getitem 602,15;    // Asa de Borboleta (peso leve)
-		getitem 2607,2;    // Presilha [1] (Clip com bônus procedurais)
-		getitem 2214,1;    // Laço de Cabelo
-		getitem 2501,1;    // Capuz
-		getitem 2401,1;    // Sandálias
-		getitem 2102,1;    // Vantagem / Guard
-		getitem 2306,1;    // Traje de Noviço / Adventurer's Suit
-		getitem 1207,1;    // Faca / Main Gauche
-		getitem 4002,2;    // Carta Fabre
-		getitem 4003,1;    // Carta Pupa
-		getitem 4012,2;    // Carta Ovo de Besouro-Ladrão
-		getitem 969,3;     // Ouro (peso leve)
-		getitem 603,3;     // Caixa Velha Azul (OBB)
-		getitem 616,2;     // Álbum Velho de Cartas (OCA)
+		set Zeny, Zeny + 1000;
+		getitem 501,20;    // 20 Poções Vermelhas (peso zero)
+		getitem 503,5;     // 5 Poções Amarelas (peso zero)
+		getitem 706,1;     // 1 Trevo de Quatro Folhas (flavor!)
+		getitem 944,1;     // 1 Ferradura (flavor!)
+		getitem 2607,1;    // 1 Presilha [1] (Clip)
+		getitem 2647,1;    // 1 Flor do Nilo [1] (Rosa do Nilo)
+		getitem 1202,1;    // 1 Faca [4] (Knife [4])
+		getitem 1602,1;    // 1 Rod [4] (Vara [4])
+		getitem 1702,1;    // 1 Bow [4] (Arco [4])
+		getitem 2102,1;    // 1 Vembrassa [1] (Guard [1])
+		getitem 4002,2;    // 2 Carta Fabre
+		getitem 4003,1;    // 1 Carta Pupa
+		getitem 4012,2;    // 2 Carta Ovo de Besouro-Ladrão
 
 		#starter_items_given = 1;
-		dispbottom "Você recebeu o Pacote Inicial Roguelike!";
+		dispbottom "Você recebeu o Pacote Inicial Roguelike (1.000 Zeny e kit com peso zero)!";
 	}
 	end;
 }

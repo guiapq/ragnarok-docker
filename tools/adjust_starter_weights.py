@@ -20,19 +20,30 @@ def load_env():
                         env[k] = v
     return env
 
-# Pesos otimizados para roguelike (em décimos de peso rAthena: 10 = 1.0 de peso no client)
+# Pesos otimizados para roguelike (peso zero para itens iniciais do Aprendiz não pesarem nada)
 LIGHT_WEIGHTS = {
-    501: 10,   # Poção Vermelha (Red Potion) - original: 70 (7.0) -> novo: 10 (1.0)
-    502: 10,   # Poção Laranja (Orange Potion) - original: 100 -> novo: 10
-    503: 15,   # Poção Amarela (Yellow Potion) - original: 130 -> novo: 15
-    504: 20,   # Poção Branca (White Potion) - original: 150 (15.0) -> novo: 20 (2.0)
-    505: 20,   # Poção Azul (Blue Potion) - original: 150 (15.0) -> novo: 20 (2.0)
-    601: 5,    # Asa de Mosca (Fly Wing) - original: 50 (5.0) -> novo: 5 (0.5)
-    602: 5,    # Asa de Borboleta (Butterfly Wing) - original: 50 (5.0) -> novo: 5 (0.5)
-    611: 0,    # Lupa (Magnifier) - original: 40 (4.0) -> novo: 0 (peso zero)
-    969: 10,   # Ouro (Gold) - original: 200 (20.0) -> novo: 10 (1.0)
-    603: 20,   # Caixa Velha Azul (Old Blue Box) - original: 200 -> novo: 20 (2.0)
-    616: 10,   # Álbum Velho de Cartas (Old Card Album) - original: 50 -> novo: 10 (1.0)
+    501: 0,    # Poção Vermelha (Red Potion) - peso ZERO
+    502: 0,    # Poção Laranja (Orange Potion) - peso ZERO
+    503: 0,    # Poção Amarela (Yellow Potion) - peso ZERO
+    504: 0,    # Poção Branca (White Potion) - peso ZERO
+    505: 0,    # Poção Azul (Blue Potion) - peso ZERO
+    601: 0,    # Asa de Mosca (Fly Wing) - peso ZERO
+    602: 0,    # Asa de Borboleta (Butterfly Wing) - peso ZERO
+    611: 0,    # Lupa (Magnifier) - peso ZERO
+    706: 0,    # Trevo de Quatro Folhas (Four Leaf Clover) - peso ZERO
+    944: 0,    # Ferradura (Horseshoe) - peso ZERO
+    969: 0,    # Ouro (Gold) - peso ZERO
+    1202: 0,   # Faca [4] (Knife [4]) - peso ZERO
+    1602: 0,   # Rod [4] (Vara [4]) - peso ZERO
+    1702: 0,   # Bow [4] (Arco [4]) - peso ZERO
+    2102: 0,   # Vembrassa [1] (Guard [1]) - peso ZERO
+    2607: 0,   # Presilha [1] (Clip [1]) - peso ZERO
+    2647: 0,   # Flor do Nilo [1] (Rosa do Nilo [1]) - peso ZERO
+    4002: 0,   # Carta Fabre - peso ZERO
+    4003: 0,   # Carta Pupa - peso ZERO
+    4012: 0,   # Carta Ovo de Besouro-Ladrão - peso ZERO
+    603: 0,    # Caixa Velha Azul (Old Blue Box) - peso ZERO
+    616: 0,    # Álbum Velho de Cartas (Old Card Album) - peso ZERO
 }
 
 def adjust_weights_in_db(path):
