@@ -64,6 +64,71 @@ ITEM_PRICES = {
     728:   4000,    # Sapphire
     732:   5500,    # Emerald
     733:   4500,    # Pearl
+
+    # ── ARMAS INICIAIS ACESSÍVEIS (Req 1) ──────────────────────────────────
+    1201:    50,    # Knife
+    1202:    50,    # Knife [3]
+    1204:   100,    # Cutter
+    1205:   100,    # Cutter [3]
+    1207:   200,    # Main Gauche
+    1208:   200,    # Main Gauche [3]
+    1101:   150,    # Sword
+    1102:   150,    # Sword [3]
+    1601:   100,    # Rod
+    1602:   100,    # Rod [3]
+    1701:   150,    # Bow
+    1702:   150,    # Bow [3]
+    1301:   150,    # Axe
+    1302:   150,    # Axe [3]
+    1501:    80,    # Club
+    1502:    80,    # Club [3]
+    1801:   150,    # Waghnak
+    1802:   150,    # Waghnak [3]
+
+    # ── LOOT INICIAL COM VENDA GARANTIDA (Req 1 & 3) ────────────────────────
+    909:     40,    # Jellopy (vende por 20z)
+    914:     40,    # Fluff (vende por 20z)
+    705:     50,    # Clover (vende por 25z)
+    938:     60,    # Sticky Mucus (vende por 30z)
+    913:     60,    # Chrysalis (vende por 30z)
+    915:     50,    # Feather (vende por 25z)
+    948:     80,    # Bill of Birds (vende por 40z)
+
+    # ── DUAS ARMAS DE PONTA CARAS POR CATEGORIA (Req 8) ────────────────────
+    1129:  350000,  # Flamberge [0]
+    1163:  750000,  # Claymore [0]
+    1226:  300000,  # Damascus [2]
+    1220:  450000,  # Gladius [3]
+    1718:  250000,  # Hunter Bow [0]
+    1716:  550000,  # Gakkung Bow [2]
+    1611:  250000,  # Arc Wand [2]
+    1618:  850000,  # Survivor's Rod [1]
+    1361:  350000,  # Two-Handed Axe [2]
+    1357:  250000,  # Buster
+    1523:  600000,  # Golden Mace
+    1516:  320000,  # Sword Mace [1]
+    1458:  380000,  # Halberd [2]
+    1413:  650000,  # Lance [0]
+    1253:  350000,  # Jamadhar [1]
+    1255: 1200000,  # Infiltrator
+    13150: 250000,  # Rolling Stone
+    13152: 550000,  # Black Rose
+    1805:  220000,  # Iron Driver
+    1808:  500000,  # Finger [2]
+    1904:  280000,  # Guitar [1]
+    1958:  420000,  # Chemeti Whip
+
+    # ── ARMADURAS TEMÁTICAS ESPECIAIS POR CIDADE (Req 9) ───────────────────
+    2315:    4000,  # Chain Mail [1] (Prontera)
+    2329:    2500,  # Wooden Mail [1] (Izlude)
+    2322:    3500,  # Silk Robe [1] (Geffen)
+    2331:    5500,  # Tights [1] (Payon)
+    2336:    3800,  # Thief Clothes [1] (Morroc)
+    2311:    4500,  # Mink Coat (Alberta)
+    2326:    5000,  # Saint's Robe [1] (Al De Baran)
+    2371:    4200,  # Pantie [1] (Comodo)
+    2341:    6500,  # Legion Plate Armor (Einbroch)
+    2310:    3200,  # Coat [1] (Yuno)
 }
 
 

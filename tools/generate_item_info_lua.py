@@ -168,11 +168,35 @@ BONUS_TRANSLATIONS = {
     r"bonus\s+bUnbreakableGarment;": ("^008800Capa Indestrutivel em batalha^000000", ""),
     r"bonus\s+bNoKnockback;": ("^008800Imune a empurrao (Knockback)^000000", ""),
     r"bonus\s+bNoCastCancel;": ("^008800Conjuracao ininterrupta^000000", ""),
+    r"bonus\s+bCritAtkRate,([-\d]+);": ("^FF0000Dano Critico {val}%^000000", "+"),
     r"bonus\s+bSpeedRate,([-\d]+);": ("^008800Velocidade de Movimento {val}%^000000", "+"),
     r"bonus\s+bDoubleRate,([-\d]+);": ("^FF0000Chance de Ataque Duplo {val}%^000000", "+"),
     r"bonus\s+bSplashRange,([-\d]+);": ("^FF0000Ataque em Area (Splash)^000000", ""),
     r"bonus\s+bHealPower,([-\d]+);": ("^008800Eficacia de Cura {val}%^000000", "+"),
     r"bonus2\s+bAddClass,Class_All,([-\d]+);": ("^FF4400Dano fisico contra todos os alvos {val}%^000000", "+"),
+}
+
+SKILL_NAMES_MAP = {
+    "AL_HEAL": "Curar",
+    "AL_BLESSING": "Bencao",
+    "AL_INCAGI": "Aumentar Agilidade",
+    "AL_TELEPORT": "Teleporte",
+    "AL_CURE": "Curar Efeitos",
+    "PR_KYRIE": "Kyrie Eleison",
+    "SM_ENDURE": "Vigor",
+    "SM_BASH": "Golpe Fulminante",
+    "SM_MAGNUM": "Impacto Explosivo",
+    "SM_PROVOKE": "Provocar",
+    "MG_FIREBOLT": "Lancas de Fogo",
+    "MG_COLDBOLT": "Lancas de Gelo",
+    "MG_LIGHTNINGBOLT": "Relampago",
+    "TF_DOUBLE": "Ataque Duplo",
+    "TF_STEAL": "Furto",
+    "TF_HIDING": "Esconderijo",
+    "MC_MAMMONITE": "Mammonita",
+    "MC_LOUD": "Grito de Guerra",
+    "WZ_METEOR": "Chuva de Meteoros",
+    "WZ_STORMGUST": "Nevasca",
 }
 
 # Tipos de equipamento no rAthena (mmo.hpp)
@@ -212,6 +236,27 @@ def parse_script_bonuses(script):
                     lines.append(template.format(val=raw_val))
             else:
                 lines.append(template)
+
+    # Autocasts ao atacar (on-attack)
+    for m in re.finditer(r'bonus3\s+bAutoSpell,"([^"]+)",(\d+),(\d+);', script):
+        sk, lv, rate = m.group(1), m.group(2), int(m.group(3))
+        sk_name = SKILL_NAMES_MAP.get(sk, sk)
+        pct = rate / 10 if rate % 10 != 0 else rate // 10
+        lines.append(f"^008800Autoconjura {sk_name} Nv. {lv} ao atacar ({pct}%)^000000")
+
+    # Autocasts ao receber dano (on-hit)
+    for m in re.finditer(r'bonus3\s+bAutoSpellWhenHit,"([^"]+)",(\d+),(\d+);', script):
+        sk, lv, rate = m.group(1), m.group(2), int(m.group(3))
+        sk_name = SKILL_NAMES_MAP.get(sk, sk)
+        pct = rate / 10 if rate % 10 != 0 else rate // 10
+        lines.append(f"^008800Autoconjura {sk_name} Nv. {lv} ao sofrer dano ({pct}%)^000000")
+
+    # Habilidades ativas concedidas
+    for m in re.finditer(r'skill\s+"([^"]+)",(\d+);', script):
+        sk, lv = m.group(1), m.group(2)
+        sk_name = SKILL_NAMES_MAP.get(sk, sk)
+        lines.append(f"^0000FFHabilita o uso de {sk_name} Nv. {lv}^000000")
+
     return lines
 
 

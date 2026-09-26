@@ -107,6 +107,9 @@ python3 tools/update_item_prices.py
 echo "Applying Renewal / WoE TE Skill & Combat Rebalance..."
 python3 tools/apply_renewal_rebalance.py
 
+echo "Generating itemInfo.lua for roBrowser..."
+python3 tools/generate_item_info_lua.py
+
 echo "Configuring rAthena player groups (Group 6 Tester & Player @warp/@go)..."
 python3 tools/configure_groups.py data/conf/groups.conf
 
