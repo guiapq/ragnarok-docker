@@ -65,9 +65,20 @@ def load_valid_ptbr():
     return set()
 
 
+def load_grf_resources():
+    """Carrega os recursos oficiais mapeados para a GRF ativa."""
+    res_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "official_resource_names.json")
+    if os.path.isfile(res_path):
+        import json
+        with open(res_path, "r", encoding="latin1") as f:
+            return set(json.load(f).keys())
+    return set()
+
+
 def categorize_items(item_db_file):
     """Lê o item_db e categoriza itens por tipo e tier para alimentar os sorteios procedurais."""
     valid_ptbr = load_valid_ptbr()
+    grf_resources = load_grf_resources()
 
     pools = {
         "equip": {1: [], 2: [], 3: [], 4: [], 5: []},
@@ -100,13 +111,14 @@ def categorize_items(item_db_file):
             except ValueError:
                 continue
 
+            str_id = str(item_id)
             # Filtros de sanidade:
-            # 1. Ignorar itens que não estejam na tradução em português (PT-BR) (corta itens estrangeiros e quebrados)
-            if valid_ptbr and str(item_id) not in valid_ptbr:
+            # 1. Ignorar itens sem textura/sprite na GRF e sem tradução válida
+            if grf_resources and str_id not in grf_resources and str_id not in valid_ptbr:
                 continue
 
-            # 2. Ignorar itens inacabados ou acima de peso 600, e travar no teto seguro da GRF (<= 15000)
-            if weight > 600 or item_id > 15000:
+            # 2. Ignorar itens inacabados com peso descalibrado
+            if weight > 25000:
                 continue
 
             # 1. Armas (Type 5 no rAthena)

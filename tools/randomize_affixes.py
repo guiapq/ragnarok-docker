@@ -439,10 +439,25 @@ def extract_first_script(line):
     depth = 0
     in_quote = False
     quote_char = ""
+    in_comment_c = False
     script_start = idx + 1
     script_end = -1
     i = idx
     while i < len(line):
+        if not in_quote and not in_comment_c and line[i:i+2] == "/*":
+            in_comment_c = True
+            i += 2
+            continue
+        if in_comment_c:
+            if line[i:i+2] == "*/":
+                in_comment_c = False
+                i += 2
+            else:
+                i += 1
+            continue
+        if not in_quote and line[i:i+2] == "//":
+            break
+
         ch = line[i]
         if in_quote:
             if ch == "\\" and i + 1 < len(line):

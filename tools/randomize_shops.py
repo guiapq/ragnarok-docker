@@ -15,6 +15,8 @@ import os
 import re
 import sys
 import shutil
+import random
+import hashlib
 
 
 def load_env():
@@ -42,52 +44,85 @@ print("=== Vanilla-Plus Shop System (Rework de Economia & Progressão) ===")
 # ─────────────────────────────────────────────────────────────────────────────
 TOP_TIER_WEAPONS = {
     'sword': [
-        (1129, 350000),  # Flamberge [0]
-        (1163, 750000),  # Claymore [0]
+        (1129, 350000),   # Flamberge [0]
+        (1163, 750000),   # Claymore [0]
+        (21011, 1800000), # Lâmina Gigante (Giant Blade)
+        (1182, 1500000),  # Terror Violeta (Violet Fear)
+        (1180, 850000),   # Espada de Cromo
     ],
     'dagger': [
-        (1226, 300000),  # Damascus [2]
-        (1220, 450000),  # Gladius [3]
+        (1226, 300000),   # Damascus [2]
+        (1220, 450000),   # Gladius [3]
+        (1228, 1400000),  # Faca de Combate (Combat Knife)
+        (1225, 950000),   # Bazerald
+        (13098, 1100000), # Adaga de Thanos
     ],
     'bow': [
-        (1718, 250000),  # Hunter Bow [0]
-        (1716, 550000),  # Gakkung Bow [2]
+        (1718, 250000),   # Hunter Bow [0]
+        (1716, 550000),   # Gakkung Bow [2]
+        (18122, 1800000), # Arco Gigante (Gigantic Bow)
+        (18110, 1200000), # Besta Grande (Giant Crossbow)
+        (1734, 750000),   # Falken Blitz
     ],
     'staff': [
-        (1611, 250000),  # Arc Wand [2]
-        (1618, 850000),  # Survivor's Rod [1] (DEX)
+        (1611, 250000),   # Arc Wand [2]
+        (1618, 850000),   # Survivor's Rod [1] (DEX)
+        (2023, 1500000),  # Cajado de Thanos de Duas Mãos
+        (2021, 1200000),  # Ganbantein
+        (1682, 900000),   # Cajado das Sombras
     ],
     'axe': [
-        (1361, 350000),  # Two-Handed Axe [2]
-        (1357, 250000),  # Buster
+        (1361, 350000),   # Two-Handed Axe [2]
+        (1357, 250000),   # Buster
+        (1549, 1600000),  # Pile Bunker
+        (1382, 1200000),  # Machado Gigante (Giant Axe)
+        (1356, 1100000),  # Guilhotina
     ],
     'mace': [
-        (1523, 600000),  # Golden Mace
-        (1516, 320000),  # Sword Mace [1]
+        (1523, 600000),   # Golden Mace
+        (1516, 320000),   # Sword Mace [1]
+        (16029, 1200000), # Martelo de Thanos
+        (1528, 950000),   # Grand Cross
+        (1536, 1100000),  # Nemesis
     ],
     'spear': [
-        (1458, 380000),  # Halberd [2]
-        (1413, 650000),  # Lance [0]
+        (1458, 380000),   # Halberd [2]
+        (1413, 650000),   # Lance [0]
+        (1484, 1800000),  # Cardo (Carled)
+        (1490, 1800000),  # Lança Gigante (Gigantic Lance)
+        (1438, 1200000),  # Lança de Thanos
     ],
     'katar': [
-        (1253, 350000),  # Jamadhar [1]
-        (1255, 1200000), # Infiltrator
+        (1253, 350000),   # Jamadhar [1]
+        (1255, 1200000),  # Infiltrator
+        (1280, 850000),   # Chakram
+        (1278, 1100000),  # Lágrimas Sangrentas
+        (1275, 800000),   # Katar Perfurante
     ],
     'gun': [
-        (13150, 250000), # Rolling Stone
-        (13152, 550000), # Black Rose
+        (13150, 250000),  # Rolling Stone
+        (13152, 550000),  # Black Rose
+        (13170, 1200000), # Gate Keeper-DD
     ],
     'knuckle': [
-        (1805, 220000),  # Iron Driver
-        (1808, 500000),  # Finger [2]
+        (1805, 220000),   # Iron Driver
+        (1808, 500000),   # Finger [2]
+        (1836, 1200000),  # Garra de Thanos
+        (1846, 950000),   # Luva de Batalha de Combo
+        (1814, 850000),   # Fúria Selvagem
     ],
     'instrument_whip': [
-        (1904, 280000),  # Guitar [1]
-        (1958, 420000),  # Chemeti Whip
+        (1904, 280000),   # Guitar [1]
+        (1958, 420000),   # Chemeti Whip
+        (1933, 1100000),  # Violino de Thanos
+        (1988, 1100000),  # Chicote de Thanos
+        (1940, 950000),   # Concha Musical
     ],
     'general': [
-        (1129, 350000),  # Flamberge [0]
-        (1718, 250000),  # Hunter Bow [0]
+        (1129, 350000),   # Flamberge [0]
+        (1718, 250000),   # Hunter Bow [0]
+        (18122, 1800000), # Arco Gigante
+        (1484, 1800000),  # Cardo
     ]
 }
 
@@ -221,12 +256,18 @@ def process_shop_file(target_rel_path):
                 is_weapon_shop = not is_tool_shop and (any(k in name_low for k in ['weapon', 'sword', 'axe', 'bow', 'wand', 'blacksmith', 'armas']) or any(1100 <= i <= 1999 for i in current_item_ids))
                 is_armor_shop = not is_tool_shop and (any(k in name_low for k in ['armor', 'tailor', 'armadura']) or (any(2100 <= i <= 2799 for i in current_item_ids) and not is_weapon_shop))
 
-                # 1. Loja de Armas: Injetar as 2 armas raras caras (Req 8)
+                # 1. Loja de Armas: Injetar 2 armas raras caras (Req 8)
                 if is_weapon_shop:
                     category = detect_weapon_category(npc_name, map_name, current_item_ids)
-                    top_weapons = TOP_TIER_WEAPONS.get(category, TOP_TIER_WEAPONS['general'])
+                    top_pool = TOP_TIER_WEAPONS.get(category, TOP_TIER_WEAPONS['general'])
 
-                    for weapon_id, price in top_weapons:
+                    # Seleção determinística de 2 armas de ponta distintas por loja baseada na seed
+                    shop_seed_str = f"{env.get('WORLD_SEED', 'zawarudo')}_{map_name}_{npc_name}_{category}"
+                    shop_hash = int(hashlib.md5(shop_seed_str.encode()).hexdigest(), 16)
+                    rng_shop = random.Random(shop_hash)
+                    selected_weapons = rng_shop.sample(top_pool, 2) if len(top_pool) >= 2 else top_pool
+
+                    for weapon_id, price in selected_weapons:
                         if weapon_id not in current_item_ids:
                             slot_items.append(f"{weapon_id}:{price}")
                             current_item_ids.append(weapon_id)

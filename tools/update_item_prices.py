@@ -94,29 +94,60 @@ ITEM_PRICES = {
     915:     50,    # Feather (vende por 25z)
     948:     80,    # Bill of Birds (vende por 40z)
 
-    # ── DUAS ARMAS DE PONTA CARAS POR CATEGORIA (Req 8) ────────────────────
+    # ── ARMAS DE PONTA CARAS POR CATEGORIA (Req 8) ─────────────────────────
     1129:  350000,  # Flamberge [0]
     1163:  750000,  # Claymore [0]
+    21011: 1800000, # Lâmina Gigante (Giant Blade)
+    1182: 1500000,  # Terror Violeta (Violet Fear)
+    1180:  850000,  # Espada de Cromo
     1226:  300000,  # Damascus [2]
     1220:  450000,  # Gladius [3]
+    1228: 1400000,  # Faca de Combate (Combat Knife)
+    1225:  950000,  # Bazerald
+    13098: 1100000, # Adaga de Thanos
     1718:  250000,  # Hunter Bow [0]
     1716:  550000,  # Gakkung Bow [2]
+    18122: 1800000, # Arco Gigante (Gigantic Bow)
+    18110: 1200000, # Besta Grande (Giant Crossbow)
+    1734:  750000,  # Falken Blitz
     1611:  250000,  # Arc Wand [2]
     1618:  850000,  # Survivor's Rod [1]
+    2023: 1500000,  # Cajado de Thanos de Duas Mãos
+    2021: 1200000,  # Ganbantein
+    1682:  900000,  # Cajado das Sombras
     1361:  350000,  # Two-Handed Axe [2]
     1357:  250000,  # Buster
+    1549: 1600000,  # Pile Bunker
+    1382: 1200000,  # Machado Gigante (Giant Axe)
+    1356: 1100000,  # Guilhotina
     1523:  600000,  # Golden Mace
     1516:  320000,  # Sword Mace [1]
+    16029: 1200000, # Martelo de Thanos
+    1528:  950000,  # Grand Cross
+    1536: 1100000,  # Nemesis
     1458:  380000,  # Halberd [2]
     1413:  650000,  # Lance [0]
+    1484: 1800000,  # Cardo (Carled)
+    1490: 1800000,  # Lança Gigante (Gigantic Lance)
+    1438: 1200000,  # Lança de Thanos
     1253:  350000,  # Jamadhar [1]
     1255: 1200000,  # Infiltrator
+    1280:  850000,  # Chakram
+    1278: 1100000,  # Lágrimas Sangrentas
+    1275:  800000,  # Katar Perfurante
     13150: 250000,  # Rolling Stone
     13152: 550000,  # Black Rose
+    13170: 1200000, # Gate Keeper-DD
     1805:  220000,  # Iron Driver
     1808:  500000,  # Finger [2]
+    1836: 1200000,  # Garra de Thanos
+    1846:  950000,  # Luva de Batalha de Combo
+    1814:  850000,  # Fúria Selvagem
     1904:  280000,  # Guitar [1]
     1958:  420000,  # Chemeti Whip
+    1933: 1100000,  # Violino de Thanos
+    1988: 1100000,  # Chicote de Thanos
+    1940:  950000,  # Concha Musical
 
     # ── ARMADURAS TEMÁTICAS ESPECIAIS POR CIDADE (Req 9) ───────────────────
     2315:    4000,  # Chain Mail [1] (Prontera)

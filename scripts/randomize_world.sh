@@ -50,6 +50,10 @@ run_randomizer() {
     python3 "$script"
 }
 
+if [ "${ENABLE_IMPORT_RENEWAL_GEARS:-true}" = true ]; then
+    run_randomizer "Importing Renewal weapons and gears (GRF compatible, 3rd to 2nd, Lv max 90)" tools/import_renewal_gears.py
+fi
+
 if [ "${ENABLE_RANDOM_DROPS:-false}" = true ]; then
     run_randomizer "Randomizing drops" tools/randomize_drops.py
 fi

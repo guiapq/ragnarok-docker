@@ -82,8 +82,11 @@ def parse_item_db_line(line):
         parts = [p.strip() for p in line.split(',')]
         script, equip_script, unequip_script = "", "", ""
 
-    if len(parts) < 19:
+    if len(parts) < 4:
         return None
+
+    while len(parts) < 19:
+        parts.append("")
 
     try:
         item_id = int(parts[0])
