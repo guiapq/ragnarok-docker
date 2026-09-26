@@ -131,6 +131,24 @@ CREATE TABLE IF NOT EXISTS event_mvp_kills (
     INDEX idx_mob_id (mob_id),
     INDEX idx_killed_at (killed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS world_map_conquests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    map_name VARCHAR(32) NOT NULL,
+    seed VARCHAR(64) NOT NULL,
+    conquered_by VARCHAR(30) NOT NULL,
+    conquered_at DATETIME NOT NULL,
+    UNIQUE KEY uk_map_seed (map_name, seed),
+    INDEX idx_seed (seed)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS world_map_connections (
+    from_map VARCHAR(32) NOT NULL,
+    to_map VARCHAR(32) NOT NULL,
+    seed VARCHAR(64) NOT NULL,
+    PRIMARY KEY (from_map, to_map, seed),
+    INDEX idx_from_seed (from_map, seed)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 " 2>/dev/null || true
 
 # Garantir compatibilidade do schema da tabela char

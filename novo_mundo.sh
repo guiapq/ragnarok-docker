@@ -121,6 +121,7 @@ TRUNCATE TABLE `guild`;
 TRUNCATE TABLE `party`;
 TRUNCATE TABLE `event_speedruns`;
 TRUNCATE TABLE `event_mvp_kills`;
+TRUNCATE TABLE `world_map_conquests`;
 TRUNCATE TABLE `ragsrvinfo`;
 
 -- Limpar todos os personagens anteriores
@@ -182,6 +183,9 @@ if [ -f "data_base/npc/custom/event_telemetry.txt" ]; then
 fi
 if [ -f "data_base/npc/custom/starter_items.txt" ]; then
     cp -f data_base/npc/custom/starter_items.txt data/npc/custom/
+fi
+if [ -f "data_base/npc/custom/map_conquest.txt" ]; then
+    cp -f data_base/npc/custom/map_conquest.txt data/npc/custom/
 fi
 
 # Configurar nova seed no .env.rando

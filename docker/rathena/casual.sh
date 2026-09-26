@@ -180,6 +180,11 @@ if ! grep -q "event_telemetry.txt" "$NPCCONF"; then
     echo "npc: npc/custom/event_telemetry.txt" >> "$NPCCONF"
 fi
 
+# Sistema de Reconquista Territorial & Névoa de Guerra (v3)
+if ! grep -q "map_conquest.txt" "$NPCCONF"; then
+    echo "npc: npc/custom/map_conquest.txt" >> "$NPCCONF"
+fi
+
 #################################
 # 5 - garantir carregamento dos NPCs custom
 #################################

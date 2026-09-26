@@ -117,6 +117,10 @@ python3 tools/generate_item_info_lua.py
 echo "Configuring rAthena player groups (Group 6 Tester & Player @warp/@go)..."
 python3 tools/configure_groups.py data/conf/groups.conf
 
+if [ "${ENABLE_RANDOM_MAPS:-true}" = true ]; then
+    run_randomizer "Randomizing world map topology and warps (v3 Roguelike)" tools/map_randomizer/randomize_map_topology.py
+fi
+
 echo "Generating Laravel world migration (seed: $WORLD_SEED)..."
 python3 tools/generate_world_migration.py "$WORLD_SEED"
 

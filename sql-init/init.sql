@@ -30,6 +30,26 @@ CREATE TABLE IF NOT EXISTS event_mvp_kills (
     INDEX idx_killed_at (killed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Tabela de Conquista Territorial e Névoa de Guerra de Mapas (v3)
+CREATE TABLE IF NOT EXISTS world_map_conquests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    map_name VARCHAR(32) NOT NULL,
+    seed VARCHAR(64) NOT NULL,
+    conquered_by VARCHAR(30) NOT NULL,
+    conquered_at DATETIME NOT NULL,
+    UNIQUE KEY uk_map_seed (map_name, seed),
+    INDEX idx_seed (seed)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Tabela de Topologia de Conexões entre Mapas (v3)
+CREATE TABLE IF NOT EXISTS world_map_connections (
+    from_map VARCHAR(32) NOT NULL,
+    to_map VARCHAR(32) NOT NULL,
+    seed VARCHAR(64) NOT NULL,
+    PRIMARY KEY (from_map, to_map, seed),
+    INDEX idx_from_seed (from_map, seed)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Conta de Administrador GM Fixa (roadmin, roadmin)
 INSERT INTO `login` (`account_id`, `userid`, `user_pass`, `sex`, `email`, `group_id`, `state`, `unban_time`, `expiration_time`, `logincount`, `lastlogin`, `last_ip`, `birthdate`, `character_slots`, `pincode`, `pincode_change`, `vip_time`, `old_group`)
 VALUES (2000001, 'roadmin', 'roadmin', 'M', 'admin@ragnarogue.local', 99, 0, 0, 0, 0, NULL, '', '2000-01-01', 9, '', 0, 0, 0)

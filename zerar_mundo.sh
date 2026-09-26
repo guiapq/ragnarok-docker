@@ -165,6 +165,8 @@ DELETE FROM `party` WHERE leader_char IN (SELECT char_id FROM temp_chars_to_dele
 -- Limpar eventos e telemetrias desses chars
 DELETE FROM `event_speedruns` WHERE char_id IN (SELECT char_id FROM temp_chars_to_delete);
 DELETE FROM `event_mvp_kills` WHERE char_id IN (SELECT char_id FROM temp_chars_to_delete);
+DELETE FROM `world_map_conquests` WHERE conquered_by IN (SELECT name FROM temp_chars_to_delete);
+
 
 -- 4. Excluir os personagens da tabela char
 DELETE FROM `char` WHERE char_id IN (SELECT char_id FROM temp_chars_to_delete);
