@@ -6,6 +6,8 @@ Motor de Randomização de Topologia de Mapas e Portais (Versão 3 - RagnaRogue)
 Inspirado na arquitetura de grafo do Die4Ever, otimizado para rAthena Pré-Renewal.
 
 - Determinístico: Mesma seed gera sempre exatamente a mesma topologia.
+- Âncoras Vanilla de Equilíbrio: Pelo menos um portal principal de cada cidade (e masmorras clássicas)
+  permanece fiel ao seu destino original (ex: Prontera Sul -> prt_fild08 Porings), garantindo início suave.
 - Bidirecional e Simétrico: Passar por um portal e voltar coloca o jogador exatamente onde estava.
 - Jogável: Utiliza coordenadas de pouso (landing) oficiais seguras sem prender em água ou paredes.
 - Severamente limita mapas sem monstros: Interiores, castelos GdE, quests, aeroportos e tutoriais
@@ -21,6 +23,50 @@ import random
 from collections import defaultdict, deque
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Âncoras Canônicas Vanilla: Pelo menos uma rota principal de cada cidade é fixada ao seu destino vanilla
+CANONICAL_ANCHORS = {
+    # Prontera e Izlude
+    frozenset({"prontera", "prt_fild08"}),  # Portão Sul de Prontera (Poring Land)
+    frozenset({"izlude", "prt_fild08"}),    # Portão Oeste de Izlude
+
+    # Geffen
+    frozenset({"geffen", "gef_fild07"}),    # Portão Sul de Geffen
+    frozenset({"geffen", "gef_fild00"}),    # Portão Leste de Geffen
+
+    # Payon
+    frozenset({"payon", "pay_arche"}),      # Vila dos Arqueiros
+    frozenset({"payon", "pay_fild08"}),     # Portão Sul de Payon
+    frozenset({"pay_arche", "pay_dun00"}),  # Caverna de Payon F1
+
+    # Morroc
+    frozenset({"morocc", "moc_fild12"}),    # Portão Sul de Morroc
+    frozenset({"morocc", "moc_fild07"}),    # Portão Leste de Morroc
+    frozenset({"moc_ruins", "moc_pryd01"}), # Pirâmides F1
+
+    # Alberta
+    frozenset({"alberta", "pay_fild03"}),   # Saída de Alberta
+
+    # Aldebaran
+    frozenset({"aldebaran", "mjolnir_12"}), # Saída Sul de Aldebaran
+
+    # Comodo
+    frozenset({"comodo", "beach_dun"}),     # Caverna de Comodo
+
+    # Cidades Globais / Expansões
+    frozenset({"amatsu", "ama_fild01"}),
+    frozenset({"gonryun", "gon_fild01"}),
+    frozenset({"louyang", "lou_fild01"}),
+    frozenset({"ayothaya", "ayo_fild01"}),
+    frozenset({"einbroch", "ein_fild08"}),
+    frozenset({"einbech", "ein_fild09"}),
+    frozenset({"hugel", "hu_fild06"}),
+    frozenset({"rachel", "ra_fild12"}),
+    frozenset({"veins", "ve_fild07"}),
+    frozenset({"xmas", "xmas_fild01"}),
+    frozenset({"umbala", "um_fild04"}),
+    frozenset({"lighthalzen", "lhz_fild01"}),
+}
 
 # Padrões de mapas estritamente protegidos (interiores, lojas, GdE, eventos, tutoriais e quests)
 PROTECTED_PATTERNS = (
@@ -113,10 +159,14 @@ class WarpPoint:
     def is_protected(self):
         if not self.is_valid:
             return True
+        # Se pertencer a uma âncora canônica vanilla, não proteger do parse, mas será preservada depois
+        pair_set = frozenset({self.from_map, self.to_map})
+        if pair_set in CANONICAL_ANCHORS:
+            return False
+
         for pattern in PROTECTED_PATTERNS:
             if pattern in self.from_map or pattern in self.to_map:
                 return True
-        # Se for warp interno para o mesmo mapa
         if self.from_map == self.to_map:
             return True
         return False
@@ -196,16 +246,25 @@ def pair_reciprocal_warps(warps):
     return pairs, singletons
 
 
-def randomize_topology(pairs, seed_num):
+def randomize_topology(canonical_pairs, randomizable_pairs, seed_num):
     """
-    Cria sockets para cada ponta do par recíproco e os reconecta determinísticamente.
-    Garante simetria 100% perfeita e reversibilidade.
+    Mantém âncoras canônicas nos seus destinos vanilla originais.
+    Embaralha os demais pares recíprocos de forma determinística com simetria 100% reversível.
     """
+    connections = []
+    canonical_edges = set()
+
+    # 1. Registrar conexões canônicas vanilla (intactas!)
+    for wa, wb in canonical_pairs:
+        connections.append((wa.from_map, wb.from_map))
+        connections.append((wb.from_map, wa.from_map))
+        canonical_edges.add((wa.from_map, wb.from_map))
+        canonical_edges.add((wb.from_map, wa.from_map))
+
+    # 2. Criar sockets para os pares randomizáveis
     sockets = []
-    for wa, wb in pairs:
-        # Quando alguém chega no portal wa, ele pousa nas coordenadas seguras wb.to_x, wb.to_y
+    for wa, wb in randomizable_pairs:
         sockets.append(Socket(wa, wb.to_x, wb.to_y))
-        # Quando alguém chega no portal wb, ele pousa nas coordenadas seguras wa.to_x, wa.to_y
         sockets.append(Socket(wb, wa.to_x, wa.to_y))
 
     # Ordenação determinística antes do shuffle
@@ -219,7 +278,6 @@ def randomize_topology(pairs, seed_num):
     if len(shuffled) % 2 != 0:
         shuffled = shuffled[:-1]
 
-    connections = []
     for i in range(0, len(shuffled), 2):
         s1 = shuffled[i]
         s2 = shuffled[i + 1]
@@ -237,7 +295,7 @@ def randomize_topology(pairs, seed_num):
         connections.append((s1.map, s2.map))
         connections.append((s2.map, s1.map))
 
-    return connections
+    return connections, canonical_edges
 
 
 def write_randomized_warps(all_warps, file_lines):
@@ -257,12 +315,13 @@ def write_randomized_warps(all_warps, file_lines):
             f.writelines(lines)
 
 
-def export_topology_report(connections, output_path, seed_str, empty_maps):
+def export_topology_report(connections, canonical_edges, output_path, seed_str, empty_maps):
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(f"==========================================================\n")
         f.write(f"RAGNAROGUE v3 — TOPOLOGIA DE MUNDO PROCEDURAL\n")
         f.write(f"Seed: {seed_str}\n")
         f.write(f"Total de Rotas Criadas: {len(connections) // 2}\n")
+        f.write(f"Rotas Âncora Canônicas (Vanilla): {len(canonical_edges) // 2}\n")
         f.write(f"Santuários Pacíficos Raros (Sem Monstros): {len(empty_maps)}\n")
         f.write(f"==========================================================\n\n")
 
@@ -274,7 +333,8 @@ def export_topology_report(connections, output_path, seed_str, empty_maps):
             peace_tag = " [SANTUÁRIO PACÍFICO]" if src in empty_maps else ""
             f.write(f"[{src}]{peace_tag}\n")
             for dest in sorted(adj[src]):
-                f.write(f"  --> Conexão direta com: {dest}\n")
+                is_canon = " [ÂNCORA VANILLA]" if (src, dest) in canonical_edges else ""
+                f.write(f"  --> Conexão direta com: {dest}{is_canon}\n")
             f.write("\n")
 
 
@@ -372,8 +432,25 @@ def main():
     print(f"  - Pares bidirecionais identificados:                           {len(pairs)} ({len(pairs)*2} sockets)")
     print(f"  - Portais unidirecionais mantidos intactos:                    {len(singletons)}")
 
-    # 3. Embaralhar topologia com garantia de simetria reversível
-    connections = randomize_topology(pairs, seed_num)
+    # Separar âncoras vanilla das rotas randomizáveis
+    canonical_pairs = []
+    randomizable_pairs = []
+    used_anchors = set()
+
+    for wa, wb in pairs:
+        pair_set = frozenset({wa.from_map, wb.from_map})
+        # Garantir exatamente um portal canônico por âncora declarada
+        if pair_set in CANONICAL_ANCHORS and pair_set not in used_anchors:
+            canonical_pairs.append((wa, wb))
+            used_anchors.add(pair_set)
+        else:
+            randomizable_pairs.append((wa, wb))
+
+    print(f"  - Âncoras Canônicas Vanilla Preservadas (Equilíbrio Inicial):  {len(canonical_pairs)}")
+    print(f"  - Pares Procedurais Randomizáveis:                            {len(randomizable_pairs)}")
+
+    # 3. Embaralhar topologia preservando âncoras vanilla
+    connections, canonical_edges = randomize_topology(canonical_pairs, randomizable_pairs, seed_num)
 
     # Identificar mapas pacíficos no pool (severamente limitados)
     pool_maps = set()
@@ -386,6 +463,7 @@ def main():
     print(f"  - Cidades capitais de ancoragem:                               {len(pool_maps & STARTING_CITIES)}")
     print(f"  - Santuários pacíficos raros (sem monstros):                   {len(empty_sanctuaries)} ({', '.join(sorted(empty_sanctuaries))})")
 
+    # 4. Escrever arquivos de warp
     write_randomized_warps(all_warps, file_lines)
     print(f"  ✓ Arquivos de warp salvos com sucesso em data/npc/warps e data/npc/pre-re/warps!")
 
@@ -406,10 +484,9 @@ def main():
                 mfo.write(loadevent_content)
         print(f"  ✓ Mapflags de loadevent gerados com sucesso para {len(m_lines)} mapas!")
 
-
     # 5. Exportar relatórios e banco SQL
     report_path = os.path.join(ROOT_DIR, "data/world_topology.txt")
-    export_topology_report(connections, report_path, seed_str, empty_sanctuaries)
+    export_topology_report(connections, canonical_edges, report_path, seed_str, empty_sanctuaries)
     print(f"  ✓ Relatório de topologia salvo em: {report_path}")
 
     sql_path = os.path.join(ROOT_DIR, "data/world_map_connections.sql")

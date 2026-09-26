@@ -19,7 +19,9 @@ env=load_env()
 ROOT = env.get("RATHENA_ROOT", "data")
 mob_db_rel = env.get("MOB_DB_PATH", "db/pre-re/mob_db.txt")
 MOB_DB = os.path.join(ROOT, mob_db_rel)
+BASE_SKILL_DB = os.path.join("data_base", "db/pre-re/mob_skill_db.txt")
 SKILL_DB = os.path.join(ROOT, "db/pre-re/mob_skill_db.txt")
+
 
 seed=int(os.environ.get("WORLD_SEED_NUMERIC",0))
 random.seed(seed)
@@ -125,21 +127,27 @@ with open(MOB_DB) as f:
         # chance pequena
         #################################
 
-        chance=random.randint(5,15)
+        chance=random.randint(5,15) * 100
 
-        entry=f"{mob_id},{skill},{skill_lvl},idle,{chance},3000,0,0,yes,self,always,0,0,0"
+        entry=f"{mob_id},{skill}@Buff,idle,{skill},{skill_lvl},{chance},1000,10000,yes,self,always,,,,,,,,"
 
         entries.append(entry)
 
+
 #################################
-# escrever no skill_db
+# escrever no skill_db limpo
 #################################
 
-with open(SKILL_DB,"a") as f:
+base_lines = []
+if os.path.exists(BASE_SKILL_DB):
+    with open(BASE_SKILL_DB, "r", encoding="latin-1", errors="ignore") as f:
+        base_lines = f.readlines()
 
+with open(SKILL_DB, "w", encoding="latin-1") as f:
+    f.writelines(base_lines)
     f.write("\n// Procedural Mob Buffs\n")
-
     for e in entries:
-        f.write(e+"\n")
+        f.write(e + "\n")
 
-print("Buff skills generated:",len(entries))
+print("Buff skills generated:", len(entries))
+
