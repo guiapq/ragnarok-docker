@@ -541,53 +541,50 @@ if (content.includes("var it = DB.getItemInfo(itemid);\n\t\tvar path = DB.getIte
 }
 
 // Patch 18a: Safe dragstart across Inventory (prevent null match error and setDragImage crash)
-const targetInvDrag = `\t\t// Set image to the drag drop element
-\t\tvar img = new Image();
-\t\tvar url = this.querySelector('.icon')
-\t\t\t.style.backgroundImage.match(/\\((.*?)\\)/)[1]
-\t\t\t.replace(/('|")/g, '');
-\t\timg.decoding = 'async';
-\t\timg.src = url.replace(/^\\"/, '').replace(/\\"$/, '');
+const targetInvDrag = `\tfunction onItemDragStart(event) {
+\t\tconst index = parseInt(this.getAttribute("data-index"), 10);
+\t\tconst item = Component.getItemByIndex(index);
+\t\tif (!item) return;
+\t\tconst img = new Image();
+\t\tconst iconEl = this.querySelector(".icon");
+\t\tconst url = iconEl ? iconEl.style.backgroundImage.match(/\\((.*?)\\)/)?.[1]?.replace(/('|")/g, "") : "";
+\t\timg.decoding = "async";
+\t\timg.src = url || "";
+\t\tevent.dataTransfer.setDragImage(img, 12, 12);
+\t\tevent.dataTransfer.setData("Text", JSON.stringify(window._OBJ_DRAG_ = {
+\t\t\ttype: "item",
+\t\t\tfrom: "Inventory",
+\t\t\tdata: item
+\t\t}));
+\t\tonItemOut();
+\t}`;
 
-\t\tevent.originalEvent.dataTransfer.setDragImage(img, 12, 12);
-\t\tevent.originalEvent.dataTransfer.setData(
-\t\t\t'Text',
-\t\t\tJSON.stringify(
-\t\t\t\t(window._OBJ_DRAG_ = {
-\t\t\t\t\ttype: 'item',
-\t\t\t\t\tfrom: 'Inventory',
-\t\t\t\t\tdata: item
-\t\t\t\t})
-\t\t\t)
-\t\t);
-
-\t\tonItemOut();`;
-
-const replaceInvDrag = `\t\t// Set image to the drag drop element (safe against null match and CORS/unloaded setDragImage)
-\t\tvar iconEl = this.querySelector('.icon') || this.firstChild;
-\t\tvar bgM = iconEl && iconEl.style.backgroundImage ? iconEl.style.backgroundImage.match(/\\((.*?)\\)/) : null;
-\t\tvar url = bgM && bgM[1] ? bgM[1].replace(/('|")/g, '').replace(/^\"/, '').replace(/\"$/, '') : '';
-\t\tif (url) {
-\t\t\ttry {
-\t\t\t\tvar img = new Image();
-\t\t\t\timg.decoding = 'async';
+const replaceInvDrag = `\tfunction onItemDragStart(event) {
+\t\tconst index = parseInt(this.getAttribute("data-index"), 10);
+\t\tconst item = Component.getItemByIndex(index);
+\t\tif (!item) return;
+\t\twindow._OBJ_DRAG_ = {
+\t\t\ttype: "item",
+\t\t\tfrom: "Inventory",
+\t\t\tdata: item
+\t\t};
+\t\ttry {
+\t\t\tevent.dataTransfer.setData("Text", JSON.stringify(window._OBJ_DRAG_));
+\t\t} catch (e) {}
+\t\ttry {
+\t\t\tconst iconEl = this.querySelector(".icon");
+\t\t\tconst bg = iconEl ? iconEl.style.backgroundImage : "";
+\t\t\tconst m = bg ? bg.match(/\\((.*?)\\)/) : null;
+\t\t\tconst url = m && m[1] ? m[1].replace(/('|")/g, "").replace(/^"/, "").replace(/"$/, "") : "";
+\t\t\tif (url) {
+\t\t\t\tconst img = new Image();
+\t\t\t\timg.decoding = "async";
 \t\t\t\timg.src = url;
-\t\t\t\tevent.originalEvent.dataTransfer.setDragImage(img, 12, 12);
-\t\t\t} catch (e) {}
-\t\t}
-
-\t\tevent.originalEvent.dataTransfer.setData(
-\t\t\t'Text',
-\t\t\tJSON.stringify(
-\t\t\t\t(window._OBJ_DRAG_ = {
-\t\t\t\t\ttype: 'item',
-\t\t\t\t\tfrom: 'Inventory',
-\t\t\t\t\tdata: item
-\t\t\t\t})
-\t\t\t)
-\t\t);
-
-\t\tonItemOut();`;
+\t\t\t\tevent.dataTransfer.setDragImage(img, 12, 12);
+\t\t\t}
+\t\t} catch (e) {}
+\t\tonItemOut();
+\t}`;
 
 for (const [oldStr, newStr] of [
 	[targetInvDrag.replace(/\n/g, '\r\n'), replaceInvDrag.replace(/\n/g, '\r\n')],
@@ -620,20 +617,20 @@ for (const [oldStr, newStr] of [
 }
 
 // Patch 18b: Safe InputBox.setType('item')
-const targetInputItem = `			case 'item':
-				this.ui.addClass('number');
-				this.ui.find('.text').text(DB.getItemInfo(itemId).identifiedDisplayName);
-				this.ui.find('input').attr('type', 'text');
-				defaultVal = defaultVal || 0;
-				break;`;
+const targetInputItem = `\t\t\tcase "item":
+\t\t\t\tinnerRoot.classList.add("number");
+\t\t\t\tif (textEl) textEl.textContent = DB.getItemInfo(itemId).identifiedDisplayName;
+\t\t\t\tif (input) input.type = "text";
+\t\t\t\tdefaultVal = defaultVal || 0;`;
 
-const replaceInputItem = `			case 'item':
-				this.ui.addClass('number');
-				var itm = DB.getItemInfo(itemId);
-				this.ui.find('.text').text(itm && itm.identifiedDisplayName ? itm.identifiedDisplayName : ('Item #' + itemId));
-				this.ui.find('input').attr('type', 'text');
-				defaultVal = defaultVal || 0;
-				break;`;
+const replaceInputItem = `\t\t\tcase "item":
+\t\t\t\tinnerRoot.classList.add("number");
+\t\t\t\tif (textEl) {
+\t\t\t\t\tconst _it = DB.getItemInfo(itemId);
+\t\t\t\t\ttextEl.textContent = (_it && _it.identifiedDisplayName) ? _it.identifiedDisplayName : ('Item #' + itemId);
+\t\t\t\t}
+\t\t\t\tif (input) input.type = "text";
+\t\t\t\tdefaultVal = defaultVal || 0;`;
 
 for (const [oldStr, newStr] of [
 	[targetInputItem.replace(/\n/g, '\r\n'), replaceInputItem.replace(/\n/g, '\r\n')],
@@ -647,72 +644,69 @@ for (const [oldStr, newStr] of [
 	}
 }
 
-// Patch 18c: Reliable MapControl drop handling (fallback to _OBJ_DRAG_, allow drop with Equipment open, attach to document)
-const targetMapDrop = `\t/**
-\t * Drop items to the map
-\t */
-\tfunction onDrop(event) {
-\t\tvar item, data;
+// Patch 18c: Reliable MapControl drop handling (fallback to _OBJ_DRAG_, allow drop with Equipment open, prevent drop in UI)
+const targetMapDrop = `function onDrop$6(event) {
+\tlet data;
+\ttry {
+\t\tdata = JSON.parse(event.dataTransfer.getData("Text"));
+\t} catch (e) {
+\t\tconsole.error(e);
+\t}
+\tevent.preventDefault();
+\tevent.stopImmediatePropagation();
+\tif (!data) return;
+\tif (data.from) {
+\t\tconst comp = UIManager.getComponent(data.from);
+\t\tif (comp && comp.ui) (comp.ui[0] || comp.ui).dispatchEvent(new MouseEvent("mouseleave", { bubbles: false }));
+\t}
+\tif (data.type !== "item" || data.from !== "Inventory") return;
+\tif (EquipmentController.getUI().ui.is(":visible")) {
+\t\tChatBox_default.addText(DB.getMessage(189), ChatBox_default.TYPE.ERROR, ChatBox_default.FILTER.ITEM);
+\t\treturn;
+\t}
+\tif (UIManager.getComponent("Inventory").name !== "InventoryV0" && InventoryController.getUI().itemlock === true) return;
+\tconst item = data.data;
+\tif (item.count > 1) {
+\t\tInputBox_default.append();
+\t\tInputBox_default.setType("item", false, item.count, item.ITID);
+\t\tInputBox_default.onSubmitRequest = function onSubmitRequest(count) {
+\t\t\tInputBox_default.remove();
+\t\t\tMapControl.onRequestDropItem(item.index, parseInt(count, 10));
+\t\t};
+\t} else MapControl.onRequestDropItem(item.index, 1);
+}`;
 
-\t\ttry {
-\t\t\tdata = JSON.parse(event.originalEvent.dataTransfer.getData('Text'));
-\t\t} catch (e) {
-\t\t\tconsole.error(e);
-\t\t}
-
-\t\t// Stop default behavior
-\t\tevent.stopImmediatePropagation();
-\t\tif (!data) {
-\t\t\treturn false;
-\t\t}
-
-\t\t// Hacky way to trigger mouseleave (mouseleave isn't
-\t\t// triggered when dragging an object).
-\t\t// ondragleave event is not relyable to do it (not working as intended)
-\t\tif (data.from) {
-\t\t\tUIManager.getComponent(data.from).ui.trigger('mouseleave');
-\t\t}
-
-\t\t// Just support items ?
-\t\tif (data.type !== 'item' || data.from !== 'Inventory') {
-\t\t\treturn false;
-\t\t}
-
-\t\t// Can't drop an item on map if Equipment window is open
-\t\tif (Equipment.getUI().ui.is(':visible')) {
-\t\t\tChatBox.addText(DB.getMessage(189), ChatBox.TYPE.ERROR, ChatBox.FILTER.ITEM);
-\t\t\treturn false;
-\t\t}`;
-
-const replaceMapDrop = `\t/**
-\t * Drop items to the map (robust drag-drop with _OBJ_DRAG_ fallback)
-\t */
-\tfunction onDrop(event) {
-\t\tvar item, data;
-
-\t\ttry {
-\t\t\tdata = JSON.parse(event.originalEvent.dataTransfer.getData('Text'));
-\t\t} catch (e) {}
-
-\t\tif (!data && window._OBJ_DRAG_) {
-\t\t\tdata = window._OBJ_DRAG_;
-\t\t}
-
-\t\t// Stop default behavior
-\t\tevent.stopImmediatePropagation();
-\t\tif (!data) {
-\t\t\treturn false;
-\t\t}
-
-\t\t// Hacky way to trigger mouseleave
-\t\tif (data.from && UIManager.getComponent(data.from)) {
-\t\t\tUIManager.getComponent(data.from).ui.trigger('mouseleave');
-\t\t}
-
-\t\t// Just support items ?
-\t\tif (data.type !== 'item' || data.from !== 'Inventory') {
-\t\t\treturn false;
-\t\t}`;
+const replaceMapDrop = `function onDrop$6(event) {
+\tlet data;
+\ttry {
+\t\tconst raw = event.dataTransfer.getData("Text");
+\t\tdata = raw ? JSON.parse(raw) : null;
+\t} catch (e) {
+\t\tconsole.error(e);
+\t}
+\tif (!data && window._OBJ_DRAG_) {
+\t\tdata = window._OBJ_DRAG_;
+\t}
+\tevent.preventDefault();
+\tevent.stopImmediatePropagation();
+\tif (!data) return;
+\tif (event.target && event.target.closest && event.target.closest(".win-content, .window, #ShortCut, #Inventory, #Equipment, #SkillList")) return;
+\tif (data.from) {
+\t\tconst comp = UIManager.getComponent(data.from);
+\t\tif (comp && comp.ui) (comp.ui[0] || comp.ui).dispatchEvent(new MouseEvent("mouseleave", { bubbles: false }));
+\t}
+\tif (data.type !== "item" || data.from !== "Inventory") return;
+\tif (UIManager.getComponent("Inventory").name !== "InventoryV0" && InventoryController.getUI().itemlock === true) return;
+\tconst item = data.data;
+\tif (item.count > 1) {
+\t\tInputBox_default.append();
+\t\tInputBox_default.setType("item", false, item.count, item.ITID);
+\t\tInputBox_default.onSubmitRequest = function onSubmitRequest(count) {
+\t\t\tInputBox_default.remove();
+\t\t\tMapControl.onRequestDropItem(item.index, parseInt(count, 10));
+\t\t};
+\t} else MapControl.onRequestDropItem(item.index, 1);
+}`;
 
 for (const [oldStr, newStr] of [
 	[targetMapDrop.replace(/\n/g, '\r\n'), replaceMapDrop.replace(/\n/g, '\r\n')],
@@ -727,21 +721,13 @@ for (const [oldStr, newStr] of [
 }
 
 // Patch 18d: Attach drop listeners to document for full playfield drop detection
-const targetMapInitDrop = `\t\t// Attach events
-\t\tjQuery(Renderer.canvas)
-\t\t\t.on('mousewheel DOMMouseScroll', onMouseWheel)
-\t\t\t.on('dragover', onDragOver)
-\t\t\t.on('drop', onDrop.bind(this));`;
+const targetMapInitDrop = `\t\t\tRenderer.canvas.addEventListener("dragover", onDragOver);
+\t\t\tRenderer.canvas.addEventListener("drop", onDrop$6.bind(this));`;
 
-const replaceMapInitDrop = `\t\t// Attach events
-\t\tjQuery(Renderer.canvas)
-\t\t\t.on('mousewheel DOMMouseScroll', onMouseWheel)
-\t\t\t.on('dragover', onDragOver)
-\t\t\t.on('drop', onDrop.bind(this));
-
-\t\tjQuery(document)
-\t\t\t.on('dragover', onDragOver)
-\t\t\t.on('drop', onDrop.bind(this));`;
+const replaceMapInitDrop = `\t\t\tRenderer.canvas.addEventListener("dragover", onDragOver);
+\t\t\tRenderer.canvas.addEventListener("drop", onDrop$6.bind(this));
+\t\t\tdocument.addEventListener("dragover", onDragOver);
+\t\t\tdocument.addEventListener("drop", onDrop$6.bind(this));`;
 
 for (const [oldStr, newStr] of [
 	[targetMapInitDrop.replace(/\n/g, '\r\n'), replaceMapInitDrop.replace(/\n/g, '\r\n')],
@@ -751,6 +737,223 @@ for (const [oldStr, newStr] of [
 		content = content.replace(oldStr, newStr);
 		patches++;
 		console.log('✓ Patch 18d (Document-wide ground drop listener) applied');
+		break;
+	}
+}
+
+// Patch 18e: ShortCut drop fallback to window._OBJ_DRAG_
+const targetShortCutDrop = `function onDrop$8(event, target) {
+\tlet data, element;
+\tconst index = parseInt(target.getAttribute("data-index"), 10);
+\tconst row = Math.floor(index / 9);
+\tevent.stopImmediatePropagation();
+\tevent.preventDefault();
+\ttry {
+\t\tdata = JSON.parse(event.dataTransfer.getData("Text"));
+\t\telement = data.data;
+\t} catch (_e) {
+\t\treturn;
+\t}
+\tif (data.type !== "item" && data.type !== "skill") return;`;
+
+const replaceShortCutDrop = `function onDrop$8(event, target) {
+\tlet data, element;
+\tconst index = parseInt(target.getAttribute("data-index"), 10);
+\tconst row = Math.floor(index / 9);
+\tevent.stopImmediatePropagation();
+\tevent.preventDefault();
+\ttry {
+\t\tconst raw = event.dataTransfer.getData("Text");
+\t\tdata = raw ? JSON.parse(raw) : null;
+\t} catch (_e) {}
+\tif (!data && window._OBJ_DRAG_) {
+\t\tdata = window._OBJ_DRAG_;
+\t}
+\tif (!data || !data.data) return;
+\telement = data.data;
+\tif (data.type !== "item" && data.type !== "skill") return;`;
+
+for (const [oldStr, newStr] of [
+	[targetShortCutDrop.replace(/\n/g, '\r\n'), replaceShortCutDrop.replace(/\n/g, '\r\n')],
+	[targetShortCutDrop, replaceShortCutDrop]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 18e (ShortCut onDrop fallback to _OBJ_DRAG_) applied');
+		break;
+	}
+}
+
+// Patch 18f: ShortCut onDragStart safe drag image and data transfer
+const targetShortCutDragStart = `function onDragStart$2(event, icon) {
+\tconst index = parseInt(icon.parentNode.getAttribute("data-index"), 10);
+\ticon.classList.add("hide");
+\tconst img = new Image();
+\timg.decoding = "async";
+\timg.src = icon.querySelector(".img").style.backgroundImage.match(/\\(([^)]+)/)[1].replace(/"/g, "");
+\tevent.dataTransfer.setDragImage(img, 12, 12);
+\tevent.dataTransfer.setData("Text", JSON.stringify(window._OBJ_DRAG_ = {
+\t\ttype: _list$1[index].isSkill ? "skill" : "item",
+\t\tfrom: "ShortCut",
+\t\tdata: _list$1[index]
+\t}));
+}`;
+
+const replaceShortCutDragStart = `function onDragStart$2(event, icon) {
+\tconst index = parseInt(icon.parentNode.getAttribute("data-index"), 10);
+\ticon.classList.add("hide");
+\twindow._OBJ_DRAG_ = {
+\t\ttype: _list$1[index].isSkill ? "skill" : "item",
+\t\tfrom: "ShortCut",
+\t\tdata: _list$1[index]
+\t};
+\ttry {
+\t\tevent.dataTransfer.setData("Text", JSON.stringify(window._OBJ_DRAG_));
+\t} catch (e) {}
+\ttry {
+\t\tconst imgEl = icon.querySelector(".img");
+\t\tconst bg = imgEl ? imgEl.style.backgroundImage : "";
+\t\tconst m = bg ? bg.match(/\\((.*?)\\)/) : null;
+\t\tconst url = m && m[1] ? m[1].replace(/('|")/g, "").replace(/^"/, "").replace(/"$/, "") : "";
+\t\tif (url) {
+\t\t\tconst img = new Image();
+\t\t\timg.decoding = "async";
+\t\t\timg.src = url;
+\t\t\tevent.dataTransfer.setDragImage(img, 12, 12);
+\t\t}
+\t} catch (e) {}
+}`;
+
+for (const [oldStr, newStr] of [
+	[targetShortCutDragStart.replace(/\n/g, '\r\n'), replaceShortCutDragStart.replace(/\n/g, '\r\n')],
+	[targetShortCutDragStart, replaceShortCutDragStart]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 18f (ShortCut onDragStart safe image) applied');
+		break;
+	}
+}
+
+// Patch 18g: ShortCut addElement Divine Pride fallback and safe DB info
+const targetShortCutAddElement = `\tShortCut.addElement = function addElement(index, isSkill, ID, count) {
+\t\tlet file, name;
+\t\tconst ui = ShortCut.getRoot().querySelector(\`.container[data-index="\${index}"]\`);
+\t\tif (!ui) return;
+\t\tui.innerHTML = "";
+\t\tif (!_list$1[index]) _list$1[index] = {};
+\t\t_list$1[index].isSkill = isSkill;
+\t\t_list$1[index].ID = ID;
+\t\tif (isSkill) {
+\t\t\tif (!count) return;
+\t\t\telse {
+\t\t\t\t_list$1[index].count = count;
+\t\t\t\tfile = SkillInfo[ID].Name;
+\t\t\t\tname = SkillInfo[ID].SkillName;
+\t\t\t}
+\t\t} else {
+\t\t\t_list$1[index].count = count;
+\t\t\tconst item = InventoryController.getUI().getItemById(ID);
+\t\t\tif (!item) return;
+\t\t\tconst it = DB.getItemInfo(ID);
+\t\t\tfile = item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName;
+\t\t\tname = DB.getItemName(item);
+\t\t\tif (item.type === ItemType_default.WEAPON || item.type === ItemType_default.ARMOR || item.type === ItemType_default.SHADOWGEAR) count = 1;
+\t\t\telse count = item.count;
+\t\t\tif (!count) return;
+\t\t}
+\t\tconst hotkey = getHotKeyString(index);
+\t\tconst tooltipText = hotkey ? \`[ \${hotkey} ] \${name}\` : name;
+\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${file}.bmp\`, (url) => {
+\t\t\tui.innerHTML = "<div draggable=\\"true\\" class=\\"icon\\"><div class=\\"img\\"></div><div class=\\"amount\\"></div></div>";
+\t\t\tui.querySelector(".img").style.backgroundImage = \`url(\${url})\`;
+\t\t\tui.querySelector(".amount").textContent = count;
+\t\t\tui.setAttribute("data-tooltip", tooltipText);
+\t\t});
+\t};`;
+
+const replaceShortCutAddElement = `\tShortCut.addElement = function addElement(index, isSkill, ID, count) {
+\t\tlet file, name;
+\t\tconst ui = ShortCut.getRoot().querySelector(\`.container[data-index="\${index}"]\`);
+\t\tif (!ui) return;
+\t\tui.innerHTML = "";
+\t\tif (!_list$1[index]) _list$1[index] = {};
+\t\t_list$1[index].isSkill = isSkill;
+\t\t_list$1[index].ID = ID;
+\t\tif (isSkill) {
+\t\t\tif (!count) return;
+\t\t\t_list$1[index].count = count;
+\t\t\tfile = SkillInfo && SkillInfo[ID] ? SkillInfo[ID].Name : ('skill_' + ID);
+\t\t\tname = SkillInfo && SkillInfo[ID] ? SkillInfo[ID].SkillName : ('Skill #' + ID);
+\t\t} else {
+\t\t\t_list$1[index].count = count;
+\t\t\tconst item = InventoryController.getUI().getItemById(ID);
+\t\t\tconst it = DB.getItemInfo(ID) || {};
+\t\t\tfile = (item && item.IsIdentified === false) ? (it.unidentifiedResourceName || '') : (it.identifiedResourceName || '');
+\t\t\tname = item ? DB.getItemName(item) : (it.identifiedDisplayName || ('Item #' + ID));
+\t\t\tif (item) {
+\t\t\t\tif (item.type === ItemType_default.WEAPON || item.type === ItemType_default.ARMOR || item.type === ItemType_default.SHADOWGEAR) count = 1;
+\t\t\t\telse count = item.count;
+\t\t\t}
+\t\t\tif (!count) count = 1;
+\t\t}
+\t\tconst hotkey = getHotKeyString(index);
+\t\tconst tooltipText = hotkey ? \`[ \${hotkey} ] \${name}\` : name;
+\t\tconst renderIcon = (imgUrl) => {
+\t\t\tui.innerHTML = "<div draggable=\\"true\\" class=\\"icon\\"><div class=\\"img\\"></div><div class=\\"amount\\"></div></div>";
+\t\t\tif (imgUrl) ui.querySelector(".img").style.backgroundImage = \`url(\${imgUrl})\`;
+\t\t\tui.querySelector(".amount").textContent = isSkill ? "" : (count || 1);
+\t\t\tui.setAttribute("data-tooltip", tooltipText);
+\t\t};
+\t\tif (file) {
+\t\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${file}.bmp\`, (url) => {
+\t\t\t\trenderIcon(url);
+\t\t\t}, () => {
+\t\t\t\tif (!isSkill) {
+\t\t\t\t\trenderIcon(\`https://static.divine-pride.net/images/items/item/\${ID}.png\`);
+\t\t\t\t} else {
+\t\t\t\t\trenderIcon("");
+\t\t\t\t}
+\t\t\t});
+\t\t} else if (!isSkill) {
+\t\t\trenderIcon(\`https://static.divine-pride.net/images/items/item/\${ID}.png\`);
+\t\t}
+\t};`;
+
+for (const [oldStr, newStr] of [
+	[targetShortCutAddElement.replace(/\n/g, '\r\n'), replaceShortCutAddElement.replace(/\n/g, '\r\n')],
+	[targetShortCutAddElement, replaceShortCutAddElement]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 18g (ShortCut addElement Divine Pride fallback) applied');
+		break;
+	}
+}
+
+// Patch 18h: ShortCut dragover handler
+const targetShortCutInitDragOver = `\t\tcontainer.addEventListener("dragover", (e) => {
+\t\t\tif (e.target.closest(".container")) {
+\t\t\t\te.stopImmediatePropagation();
+\t\t\t\te.preventDefault();
+\t\t\t}
+\t\t});`;
+
+const replaceShortCutInitDragOver = `\t\tcontainer.addEventListener("dragover", (e) => {
+\t\t\te.preventDefault();
+\t\t});`;
+
+for (const [oldStr, newStr] of [
+	[targetShortCutInitDragOver.replace(/\n/g, '\r\n'), replaceShortCutInitDragOver.replace(/\n/g, '\r\n')],
+	[targetShortCutInitDragOver, replaceShortCutInitDragOver]
+]) {
+	if (content.includes(oldStr)) {
+		content = content.replace(oldStr, newStr);
+		patches++;
+		console.log('✓ Patch 18h (ShortCut dragover allow all) applied');
 		break;
 	}
 }
