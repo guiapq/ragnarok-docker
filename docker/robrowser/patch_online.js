@@ -911,14 +911,12 @@ const replaceShortCutAddElement = `\tShortCut.addElement = function addElement(i
 \t\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${file}.bmp\`, (url) => {
 \t\t\t\trenderIcon(url);
 \t\t\t}, () => {
-\t\t\t\tif (!isSkill) {
-\t\t\t\t\trenderIcon(\`https://static.divine-pride.net/images/items/item/\${ID}.png\`);
-\t\t\t\t} else {
-\t\t\t\t\trenderIcon("");
-\t\t\t\t}
+\t\t\t\t// Sem sprite no GRF: slot vazio (circulo padrão) em vez da maçã vermelha
+\t\t\t\trenderIcon("");
 \t\t\t});
-\t\t} else if (!isSkill) {
-\t\t\trenderIcon(\`https://static.divine-pride.net/images/items/item/\${ID}.png\`);
+\t\t} else {
+\t\t\t// Sem nome de recurso: slot vazio
+\t\t\trenderIcon("");
 \t\t}
 \t};`;
 
