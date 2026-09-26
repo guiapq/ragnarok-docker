@@ -875,49 +875,76 @@ const targetShortCutAddElement = `\tShortCut.addElement = function addElement(in
 \t};`;
 
 const replaceShortCutAddElement = `\tShortCut.addElement = function addElement(index, isSkill, ID, count) {
-\t\tlet file, name;
 \t\tconst ui = ShortCut.getRoot().querySelector(\`.container[data-index="\${index}"]\`);
 \t\tif (!ui) return;
 \t\tui.innerHTML = "";
+\t\tconst hotkey = getHotKeyString(index);
+\t\tif (!ID || ID <= 0) {
+\t\t\tif (_list$1[index]) {
+\t\t\t\t_list$1[index].isSkill = false;
+\t\t\t\t_list$1[index].ID = 0;
+\t\t\t\t_list$1[index].count = 0;
+\t\t\t}
+\t\t\tif (hotkey) ui.setAttribute("data-tooltip", hotkey);
+\t\t\telse ui.removeAttribute("data-tooltip");
+\t\t\treturn;
+\t\t}
 \t\tif (!_list$1[index]) _list$1[index] = {};
 \t\t_list$1[index].isSkill = isSkill;
 \t\t_list$1[index].ID = ID;
+\t\tlet file, name;
 \t\tif (isSkill) {
-\t\t\tif (!count) return;
-\t\t\t_list$1[index].count = count;
-\t\t\tfile = SkillInfo && SkillInfo[ID] ? SkillInfo[ID].Name : ('skill_' + ID);
-\t\t\tname = SkillInfo && SkillInfo[ID] ? SkillInfo[ID].SkillName : ('Skill #' + ID);
-\t\t} else {
-\t\t\t_list$1[index].count = count;
-\t\t\tconst item = InventoryController.getUI().getItemById(ID);
-\t\t\tconst it = DB.getItemInfo(ID) || {};
-\t\t\tfile = (item && item.IsIdentified === false) ? (it.unidentifiedResourceName || '') : (it.identifiedResourceName || '');
-\t\t\tname = item ? DB.getItemName(item) : (it.identifiedDisplayName || ('Item #' + ID));
-\t\t\tif (item) {
-\t\t\t\tif (item.type === ItemType_default.WEAPON || item.type === ItemType_default.ARMOR || item.type === ItemType_default.SHADOWGEAR) count = 1;
-\t\t\t\telse count = item.count;
+\t\t\tif (!count || !SkillInfo || !SkillInfo[ID]) {
+\t\t\t\tui.innerHTML = "";
+\t\t\t\tif (hotkey) ui.setAttribute("data-tooltip", hotkey);
+\t\t\t\telse ui.removeAttribute("data-tooltip");
+\t\t\t\treturn;
 \t\t\t}
-\t\t\tif (!count) count = 1;
+\t\t\t_list$1[index].count = count;
+\t\t\tfile = SkillInfo[ID].Name;
+\t\t\tname = SkillInfo[ID].SkillName;
+\t\t} else {
+\t\t\tconst item = InventoryController.getUI().getItemById(ID);
+\t\t\tif (!item) {
+\t\t\t\tui.innerHTML = "";
+\t\t\t\tif (hotkey) ui.setAttribute("data-tooltip", hotkey);
+\t\t\t\telse ui.removeAttribute("data-tooltip");
+\t\t\t\treturn;
+\t\t\t}
+\t\t\tif (item.type === ItemType_default.WEAPON || item.type === ItemType_default.ARMOR || item.type === ItemType_default.SHADOWGEAR) {
+\t\t\t\tcount = 1;
+\t\t\t} else {
+\t\t\t\tcount = item.count;
+\t\t\t}
+\t\t\tif (!count) {
+\t\t\t\tui.innerHTML = "";
+\t\t\t\tif (hotkey) ui.setAttribute("data-tooltip", hotkey);
+\t\t\t\telse ui.removeAttribute("data-tooltip");
+\t\t\t\treturn;
+\t\t\t}
+\t\t\t_list$1[index].count = count;
+\t\t\tconst it = DB.getItemInfo(ID);
+\t\t\tfile = (item && item.IsIdentified === false) ? (it ? it.unidentifiedResourceName : '') : (it ? it.identifiedResourceName : '');
+\t\t\tconst appleRes = (typeof unknownItem !== "undefined" && unknownItem && unknownItem.identifiedResourceName) ? unknownItem.identifiedResourceName : "\\xbb\\xe7\\xb0\\xfa";
+\t\t\tif (!file || (file === appleRes && ID !== 512)) {
+\t\t\t\tui.innerHTML = "";
+\t\t\t\tif (hotkey) ui.setAttribute("data-tooltip", hotkey);
+\t\t\t\telse ui.removeAttribute("data-tooltip");
+\t\t\t\treturn;
+\t\t\t}
+\t\t\tname = DB.getItemName(item);
 \t\t}
-\t\tconst hotkey = getHotKeyString(index);
 \t\tconst tooltipText = hotkey ? \`[ \${hotkey} ] \${name}\` : name;
-\t\tconst renderIcon = (imgUrl) => {
+\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${file}.bmp\`, (url) => {
 \t\t\tui.innerHTML = "<div draggable=\\"true\\" class=\\"icon\\"><div class=\\"img\\"></div><div class=\\"amount\\"></div></div>";
-\t\t\tif (imgUrl) ui.querySelector(".img").style.backgroundImage = \`url(\${imgUrl})\`;
+\t\t\tui.querySelector(".img").style.backgroundImage = \`url(\${url})\`;
 \t\t\tui.querySelector(".amount").textContent = isSkill ? "" : (count || 1);
 \t\t\tui.setAttribute("data-tooltip", tooltipText);
-\t\t};
-\t\tif (file) {
-\t\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${file}.bmp\`, (url) => {
-\t\t\t\trenderIcon(url);
-\t\t\t}, () => {
-\t\t\t\t// Sem sprite no GRF: slot vazio (circulo padrão) em vez da maçã vermelha
-\t\t\t\trenderIcon("");
-\t\t\t});
-\t\t} else {
-\t\t\t// Sem nome de recurso: slot vazio
-\t\t\trenderIcon("");
-\t\t}
+\t\t}, () => {
+\t\t\tui.innerHTML = "";
+\t\t\tif (hotkey) ui.setAttribute("data-tooltip", hotkey);
+\t\t\telse ui.removeAttribute("data-tooltip");
+\t\t});
 \t};`;
 
 for (const [oldStr, newStr] of [
