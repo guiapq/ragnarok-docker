@@ -222,20 +222,16 @@ def escape_lua_string(s):
 
 def format_resource_name(raw_res):
     """Retorna a string Lua para o resourceName correspondente ao índice do GRF.
-    Os nomes no GRF são decodificados pelo roBrowser via smartDecode (fallback windows-1252).
-    Portanto, convertendo os bytes brutos para a string windows-1252 e codificando
-    em UTF-8 para o wasmoon, o roBrowser recebe exatamente a string que casa com a tabela do GRF.
+    Os nomes de arquivos no GRF estão indexados na codificação coreana legada (CP949/Windows-1252).
+    Emitindo diretamente os bytes Latin-1 sem double-encoding UTF-8, o roBrowser
+    localiza a textura (.bmp) diretamente no data.grf em memória, sem erro 404.
     """
     if not raw_res:
         return '""'
     raw_bytes = raw_res.encode('latin1')
-    try:
-        js_str = raw_bytes.decode('windows-1252')
-    except Exception:
-        js_str = raw_bytes.decode('latin1')
-    utf8_bytes = js_str.encode('utf-8')
-    escaped = "".join(f"\\{b:03d}" for b in utf8_bytes)
+    escaped = "".join(f"\\{b:03d}" for b in raw_bytes)
     return f'"{escaped}"'
+
 
 
 def load_raw_official_resource_names():

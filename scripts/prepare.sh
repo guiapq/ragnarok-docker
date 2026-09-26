@@ -77,4 +77,9 @@ else
     echo "  ✓ Painel Web (web): OK"
 fi
 
+# 7. Sincronização inteligente de imagens Docker (Registry vs Build do Zero)
+if [ -f "scripts/ensure_images.sh" ]; then
+    ./scripts/ensure_images.sh
+fi
+
 echo "=== [OK] Ambiente 100% preparado e pronto para o Docker ==="

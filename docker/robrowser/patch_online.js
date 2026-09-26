@@ -369,303 +369,108 @@ for (const [oldStr, newStr] of [
 }
 
 // Patch 8: ItemInfo & ItemCompare Collection image fallback to Divine Pride
-if (!content.includes("static.divine-pride.net/images/items/collection/' + item.ITID")) {
-	const targetCollection = `				'collection/' +
-				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
-				'.bmp',
-			function (data) {
-				ui.find('.collection').css('backgroundImage', 'url(' + data + ')');
-			}
-		);`;
+const targetCollection = `\t\tClient.loadFile(DB.INTERFACE_PATH + "collection/" + (item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) + ".bmp", (data) => {\n\t\t\tconst collection = root.querySelector(".collection");\n\t\t\tif (collection) collection.style.backgroundImage = \`url(\${data})\`;\n\t\t});`;
+const replaceCollection = `\t\tClient.loadFile(DB.INTERFACE_PATH + "collection/" + (item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) + ".bmp", (data) => {\n\t\t\tconst collection = root.querySelector(".collection");\n\t\t\tif (collection) collection.style.backgroundImage = \`url(\${data})\`;\n\t\t}, () => {\n\t\t\tconst collection = root.querySelector(".collection");\n\t\t\tif (collection) collection.style.backgroundImage = \`url(https://static.divine-pride.net/images/items/collection/\${item.ITID}.png)\`;\n\t\t});`;
 
-	const replaceCollection = `				'collection/' +
-				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
-				'.bmp',
-			function (data) {
-				ui.find('.collection').css('backgroundImage', 'url(' + data + ')');
-			},
-			function () {
-				ui.find('.collection').css('backgroundImage', 'url(https://static.divine-pride.net/images/items/collection/' + item.ITID + '.png)');
-			}
-		);`;
-
-	for (const [oldStr, newStr] of [
-		[targetCollection.replace(/\n/g, '\r\n'), replaceCollection.replace(/\n/g, '\r\n')],
-		[targetCollection, replaceCollection]
-	]) {
-		if (content.includes(oldStr)) {
-			const count = content.split(oldStr).length - 1;
-			content = content.split(oldStr).join(newStr);
-			patches += count;
-			console.log(`✓ Patch 8 (ItemInfo/Compare Collection Divine Pride fallback) applied to ${count} places`);
-			break;
-		}
-	}
+if (content.includes(targetCollection)) {
+	const count = content.split(targetCollection).length - 1;
+	content = content.split(targetCollection).join(replaceCollection);
+	patches += count;
+	console.log(`✓ Patch 8 (ItemInfo/Compare Collection Divine Pride fallback) applied to ${count} places`);
 }
 
 // Patch 9: Equipment & PlayerViewEquip item button fallback to Divine Pride
-const targetEquipBtn = `		Client.loadFile(
-			DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp',
-			function (data) {
-				this.ui
-					.find('.item[data-index="' + item.index + '"] button')
-					.css('backgroundImage', 'url(' + data + ')');
-			}.bind(this)
-		);`;
+const targetEquipBtn = `\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + it.identifiedResourceName + ".bmp", (data) => {\n\t\t\troot.querySelectorAll(\`.item[data-index="\${item.index}"] button\`).forEach((btn) => {\n\t\t\t\tbtn.style.backgroundImage = \`url(\${data})\`;\n\t\t\t});\n\t\t});`;
+const replaceEquipBtn = `\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + it.identifiedResourceName + ".bmp", (data) => {\n\t\t\troot.querySelectorAll(\`.item[data-index="\${item.index}"] button\`).forEach((btn) => {\n\t\t\t\tbtn.style.backgroundImage = \`url(\${data})\`;\n\t\t\t});\n\t\t}, () => {\n\t\t\troot.querySelectorAll(\`.item[data-index="\${item.index}"] button\`).forEach((btn) => {\n\t\t\t\tbtn.style.backgroundImage = \`url(https://static.divine-pride.net/images/items/item/\${item.ITID}.png)\`;\n\t\t\t});\n\t\t});`;
 
-const replaceEquipBtn = `		Client.loadFile(
-			DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp',
-			function (data) {
-				this.ui
-					.find('.item[data-index="' + item.index + '"] button')
-					.css('backgroundImage', 'url(' + data + ')');
-			}.bind(this),
-			function () {
-				this.ui
-					.find('.item[data-index="' + item.index + '"] button')
-					.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.ITID + '.png)');
-			}.bind(this)
-		);`;
+if (content.includes(targetEquipBtn)) {
+	const count = content.split(targetEquipBtn).length - 1;
+	content = content.split(targetEquipBtn).join(replaceEquipBtn);
+	patches += count;
+	console.log(`✓ Patch 9 (Equipment Divine Pride fallback) applied to ${count} places`);
+}
 
-for (const [oldStr, newStr] of [
-	[targetEquipBtn.replace(/\n/g, '\r\n'), replaceEquipBtn.replace(/\n/g, '\r\n')],
-	[targetEquipBtn, replaceEquipBtn]
-]) {
-	if (content.includes(oldStr)) {
-		const count = content.split(oldStr).length - 1;
-		content = content.split(oldStr).join(newStr);
-		patches += count;
-		console.log(`✓ Patch 9 (Equipment Divine Pride fallback) applied to ${count} places`);
-		break;
-	}
+const targetPveBtn = `\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + it.identifiedResourceName + ".bmp", function(data) {\n\t\t\tconst btn = _root.querySelector(".item[data-index=\\"" + item.index + "\\"] button");\n\t\t\tif (btn) btn.style.backgroundImage = "url(" + data + ")";\n\t\t});`;
+const replacePveBtn = `\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + it.identifiedResourceName + ".bmp", function(data) {\n\t\t\tconst btn = _root.querySelector(".item[data-index=\\"" + item.index + "\\"] button");\n\t\t\tif (btn) btn.style.backgroundImage = "url(" + data + ")";\n\t\t}, function() {\n\t\t\tconst btn = _root.querySelector(".item[data-index=\\"" + item.index + "\\"] button");\n\t\t\tif (btn) btn.style.backgroundImage = "url(https://static.divine-pride.net/images/items/item/" + item.ITID + ".png)";\n\t\t});`;
+
+if (content.includes(targetPveBtn)) {
+	content = content.replace(targetPveBtn, replacePveBtn);
+	patches++;
+	console.log(`✓ Patch 9b (PlayerViewEquip Divine Pride fallback) applied`);
 }
 
 // Patch 10: Equipment Switch item button fallback to Divine Pride
-const targetSwitchBtn = `		Client.loadFile(
-			DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp',
-			function (data) {
-				var button = this.ui.find('.item[data-index="' + item.index + '"] button');
-				button.css('backgroundImage', 'url(' + data + ')');
-				if (!inSwitchList) {
-					button.css('filter', 'grayscale(100%)');
-				}
-			}.bind(this)
-		);`;
+const targetSwitchBtn = `\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + it.identifiedResourceName + ".bmp", (data) => {\n\t\t\tconst button = root.querySelector(\`.item[data-index="\${item.index}"] button\`);\n\t\t\tif (button) {\n\t\t\t\tbutton.style.backgroundImage = \`url(\${data})\`;\n\t\t\t\tif (!inSwitchList) button.style.filter = "grayscale(100%)";\n\t\t\t}\n\t\t});`;
+const replaceSwitchBtn = `\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + it.identifiedResourceName + ".bmp", (data) => {\n\t\t\tconst button = root.querySelector(\`.item[data-index="\${item.index}"] button\`);\n\t\t\tif (button) {\n\t\t\t\tbutton.style.backgroundImage = \`url(\${data})\`;\n\t\t\t\tif (!inSwitchList) button.style.filter = "grayscale(100%)";\n\t\t\t}\n\t\t}, () => {\n\t\t\tconst button = root.querySelector(\`.item[data-index="\${item.index}"] button\`);\n\t\t\tif (button) {\n\t\t\t\tbutton.style.backgroundImage = \`url(https://static.divine-pride.net/images/items/item/\${item.ITID}.png)\`;\n\t\t\t\tif (!inSwitchList) button.style.filter = "grayscale(100%)";\n\t\t\t}\n\t\t});`;
 
-const replaceSwitchBtn = `		Client.loadFile(
-			DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp',
-			function (data) {
-				var button = this.ui.find('.item[data-index="' + item.index + '"] button');
-				button.css('backgroundImage', 'url(' + data + ')');
-				if (!inSwitchList) {
-					button.css('filter', 'grayscale(100%)');
-				}
-			}.bind(this),
-			function () {
-				var button = this.ui.find('.item[data-index="' + item.index + '"] button');
-				button.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.ITID + '.png)');
-				if (!inSwitchList) {
-					button.css('filter', 'grayscale(100%)');
-				}
-			}.bind(this)
-		);`;
-
-for (const [oldStr, newStr] of [
-	[targetSwitchBtn.replace(/\n/g, '\r\n'), replaceSwitchBtn.replace(/\n/g, '\r\n')],
-	[targetSwitchBtn, replaceSwitchBtn]
-]) {
-	if (content.includes(oldStr)) {
-		content = content.replace(oldStr, newStr);
-		patches++;
-		console.log('✓ Patch 10 (Equipment Switch Divine Pride fallback) applied');
-		break;
-	}
+if (content.includes(targetSwitchBtn)) {
+	content = content.replace(targetSwitchBtn, replaceSwitchBtn);
+	patches++;
+	console.log('✓ Patch 10 (Equipment Switch Divine Pride fallback) applied');
 }
 
 // Patch 11: Inventory item icon fallback to Divine Pride
-const targetInvIcon = `			Client.loadFile(
-				DB.INTERFACE_PATH +
-					'item/' +
-					(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
-					'.bmp',
-				function (data) {
-					content
-						.find('.item[data-index="' + item.index + '"] .icon')
-						.css('backgroundImage', 'url(' + data + ')');
-				}
-			);`;
+const targetInvIcon = `\t\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + (item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) + ".bmp", (data) => {\n\t\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\t\tif (icon) icon.style.backgroundImage = \`url(\${data})\`;\n\t\t\t});`;
+const replaceInvIcon = `\t\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + (item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) + ".bmp", (data) => {\n\t\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\t\tif (icon) icon.style.backgroundImage = \`url(\${data})\`;\n\t\t\t}, () => {\n\t\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\t\tif (icon) icon.style.backgroundImage = \`url(https://static.divine-pride.net/images/items/item/\${item.ITID}.png)\`;\n\t\t\t});`;
 
-const replaceInvIcon = `			Client.loadFile(
-				DB.INTERFACE_PATH +
-					'item/' +
-					(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
-					'.bmp',
-				function (data) {
-					content
-						.find('.item[data-index="' + item.index + '"] .icon')
-						.css('backgroundImage', 'url(' + data + ')');
-				},
-				function () {
-					content
-						.find('.item[data-index="' + item.index + '"] .icon')
-						.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.ITID + '.png)');
-				}
-			);`;
-
-for (const [oldStr, newStr] of [
-	[targetInvIcon.replace(/\n/g, '\r\n'), replaceInvIcon.replace(/\n/g, '\r\n')],
-	[targetInvIcon, replaceInvIcon]
-]) {
-	if (content.includes(oldStr)) {
-		const count = content.split(oldStr).length - 1;
-		content = content.split(oldStr).join(newStr);
-		patches += count;
-		console.log(`✓ Patch 11 (Inventory Divine Pride fallback) applied to ${count} places`);
-		break;
-	}
+if (content.includes(targetInvIcon)) {
+	const count = content.split(targetInvIcon).length - 1;
+	content = content.split(targetInvIcon).join(replaceInvIcon);
+	patches += count;
+	console.log(`✓ Patch 11 (Inventory Divine Pride fallback) applied to ${count} places`);
 }
 
 // Patch 12: ItemObtain item icon fallback to Divine Pride
-const targetObtain = `		Client.loadFile(
-			DB.INTERFACE_PATH + 'item/' + resource + '.bmp',
-			function (url) {
-				this.ui.find('img.' + item.ITID).attr('src', url);
-			}.bind(this)
-		);`;
+const targetObtain = `\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + resource + ".bmp", (url) => {\n\t\t\tconst img = root.querySelector(\`img.item-\${item.ITID}\`);\n\t\t\tif (img) img.src = url;\n\t\t});`;
+const replaceObtain = `\t\tClient.loadFile(DB.INTERFACE_PATH + "item/" + resource + ".bmp", (url) => {\n\t\t\tconst img = root.querySelector(\`img.item-\${item.ITID}\`);\n\t\t\tif (img) img.src = url;\n\t\t}, () => {\n\t\t\tconst img = root.querySelector(\`img.item-\${item.ITID}\`);\n\t\t\tif (img) img.src = \`https://static.divine-pride.net/images/items/item/\${item.ITID}.png\`;\n\t\t});`;
 
-const replaceObtain = `		Client.loadFile(
-			DB.INTERFACE_PATH + 'item/' + resource + '.bmp',
-			function (url) {
-				this.ui.find('img.' + item.ITID).attr('src', url);
-			}.bind(this),
-			function () {
-				this.ui.find('img.' + item.ITID).attr('src', 'https://static.divine-pride.net/images/items/item/' + item.ITID + '.png');
-			}.bind(this)
-		);`;
-
-for (const [oldStr, newStr] of [
-	[targetObtain.replace(/\n/g, '\r\n'), replaceObtain.replace(/\n/g, '\r\n')],
-	[targetObtain, replaceObtain]
-]) {
-	if (content.includes(oldStr)) {
-		content = content.replace(oldStr, newStr);
-		patches++;
-		console.log('✓ Patch 12 (ItemObtain Divine Pride fallback) applied');
-		break;
-	}
+if (content.includes(targetObtain)) {
+	content = content.replace(targetObtain, replaceObtain);
+	patches++;
+	console.log('✓ Patch 12 (ItemObtain Divine Pride fallback) applied');
 }
 
 // Patch 13: Cart & Storage item icon fallback to Divine Pride
-const targetStorage = `			Client.loadFile(DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp', function (data) {
-				content.find('.item[data-index="' + i + '"] .icon').css('backgroundImage', 'url(' + data + ')');
-			});`;
+const targetStorage = `\t\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName}.bmp\`, (data) => {\n\t\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\t\tif (icon) icon.style.backgroundImage = \`url(\${data})\`;\n\t\t\t});`;
+const replaceStorage = `\t\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName}.bmp\`, (data) => {\n\t\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\t\tif (icon) icon.style.backgroundImage = \`url(\${data})\`;\n\t\t\t}, () => {\n\t\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\t\tif (icon) icon.style.backgroundImage = \`url(https://static.divine-pride.net/images/items/item/\${item.ITID}.png)\`;\n\t\t\t});`;
 
-const replaceStorage = `			Client.loadFile(DB.INTERFACE_PATH + 'item/' + it.identifiedResourceName + '.bmp', function (data) {
-				content.find('.item[data-index="' + i + '"] .icon').css('backgroundImage', 'url(' + data + ')');
-			}, function () {
-				content.find('.item[data-index="' + i + '"] .icon').css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + (it.ITID || item.ITID || i) + '.png)');
-			});`;
-
-for (const [oldStr, newStr] of [
-	[targetStorage.replace(/\n/g, '\r\n'), replaceStorage.replace(/\n/g, '\r\n')],
-	[targetStorage, replaceStorage]
-]) {
-	if (content.includes(oldStr)) {
-		content = content.replace(oldStr, newStr);
-		patches++;
-		console.log('✓ Patch 13 (Storage/Cart Divine Pride fallback) applied');
-		break;
-	}
+if (content.includes(targetStorage)) {
+	const count = content.split(targetStorage).length - 1;
+	content = content.split(targetStorage).join(replaceStorage);
+	patches += count;
+	console.log(`✓ Patch 13a (Storage item icon Divine Pride fallback) applied to ${count} places`);
 }
 
+const targetCart = `\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName}.bmp\`, (data) => {\n\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\tif (icon) icon.style.backgroundImage = \`url(\${data})\`;\n\t\t});`;
+const replaceCart = `\t\tClient.loadFile(\`\${DB.INTERFACE_PATH}item/\${item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName}.bmp\`, (data) => {\n\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\tif (icon) icon.style.backgroundImage = \`url(\${data})\`;\n\t\t}, () => {\n\t\t\tconst icon = root.querySelector(\`.item[data-index="\${item.index}"] .icon\`);\n\t\t\tif (icon) icon.style.backgroundImage = \`url(https://static.divine-pride.net/images/items/item/\${item.ITID}.png)\`;\n\t\t});`;
+
+if (content.includes(targetCart)) {
+	const count = content.split(targetCart).length - 1;
+	content = content.split(targetCart).join(replaceCart);
+	patches += count;
+	console.log(`✓ Patch 13b (Cart item icon Divine Pride fallback) applied to ${count} places`);
+}
 
 // Patch 14: NpcStore item icon fallback to Divine Pride
-const targetStoreItem = `		// Add the icon once loaded
-		Client.loadFile(
-			DB.INTERFACE_PATH +
-				'item/' +
-				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
-				'.bmp',
-			function (data) {
-				content
-					.find('.item[data-index="' + item.index + '"] .icon')
-					.css('backgroundImage', 'url(' + data + ')');
-			}
-		);`;
+const targetStoreItem = `\tClient.loadFile(DB.INTERFACE_PATH + "item/" + (item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) + ".bmp", function(data) {\n\t\tcontent.querySelectorAll(\`.item[data-index="\${item.index}"] .icon\`).forEach((icon) => {\n\t\t\ticon.style.backgroundImage = \`url(\${data})\`;\n\t\t});\n\t});`;
+const replaceStoreItem = `\tClient.loadFile(DB.INTERFACE_PATH + "item/" + (item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) + ".bmp", function(data) {\n\t\tcontent.querySelectorAll(\`.item[data-index="\${item.index}"] .icon\`).forEach((icon) => {\n\t\t\ticon.style.backgroundImage = \`url(\${data})\`;\n\t\t});\n\t}, function() {\n\t\tcontent.querySelectorAll(\`.item[data-index="\${item.index}"] .icon\`).forEach((icon) => {\n\t\t\ticon.style.backgroundImage = \`url(https://static.divine-pride.net/images/items/item/\${item.ITID}.png)\`;\n\t\t});\n\t});`;
 
-const replaceStoreItem = `		// Add the icon once loaded
-		Client.loadFile(
-			DB.INTERFACE_PATH +
-				'item/' +
-				(item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName) +
-				'.bmp',
-			function (data) {
-				content
-					.find('.item[data-index="' + item.index + '"] .icon')
-					.css('backgroundImage', 'url(' + data + ')');
-			},
-			function () {
-				content
-					.find('.item[data-index="' + item.index + '"] .icon')
-					.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.ITID + '.png)');
-			}
-		);`;
-
-for (const [oldStr, newStr] of [
-	[targetStoreItem.replace(/\n/g, '\r\n'), replaceStoreItem.replace(/\n/g, '\r\n')],
-	[targetStoreItem, replaceStoreItem]
-]) {
-	if (content.includes(oldStr)) {
-		content = content.replace(oldStr, newStr);
-		patches++;
-		console.log('✓ Patch 14 (NpcStore item icon Divine Pride fallback) applied');
-		break;
-	}
+if (content.includes(targetStoreItem)) {
+	content = content.replace(targetStoreItem, replaceStoreItem);
+	patches++;
+	console.log('✓ Patch 14 (NpcStore item icon Divine Pride fallback) applied');
 }
 
 // Patch 15: NpcStore currency icon fallback to Divine Pride
-const targetStoreCurrency = `		Client.loadFile(
-			DB.INTERFACE_PATH +
-				'item/' +
-				(item.IsIdentified ? currencyit.identifiedResourceName : currencyit.unidentifiedResourceName) +
-				'.bmp',
-			function (data) {
-				content
-					.find('.item[data-index="' + item.index + '"] .currency_icon')
-					.css('backgroundImage', 'url(' + data + ')');
-			}
-		);`;
+const targetStoreCurrency = `\tClient.loadFile(DB.INTERFACE_PATH + "item/" + (item.IsIdentified ? currencyit.identifiedResourceName : currencyit.unidentifiedResourceName) + ".bmp", function(data) {\n\t\tcontent.querySelectorAll(\`.item[data-index="\${item.index}"] .currency_icon\`).forEach((icon) => {\n\t\t\ticon.style.backgroundImage = \`url(\${data})\`;\n\t\t});\n\t});`;
+const replaceStoreCurrency = `\tClient.loadFile(DB.INTERFACE_PATH + "item/" + (item.IsIdentified ? currencyit.identifiedResourceName : currencyit.unidentifiedResourceName) + ".bmp", function(data) {\n\t\tcontent.querySelectorAll(\`.item[data-index="\${item.index}"] .currency_icon\`).forEach((icon) => {\n\t\t\ticon.style.backgroundImage = \`url(\${data})\`;\n\t\t});\n\t}, function() {\n\t\tif (item.currencyITID) {\n\t\t\tcontent.querySelectorAll(\`.item[data-index="\${item.index}"] .currency_icon\`).forEach((icon) => {\n\t\t\t\ticon.style.backgroundImage = \`url(https://static.divine-pride.net/images/items/item/\${item.currencyITID}.png)\`;\n\t\t\t});\n\t\t}\n\t});`;
 
-const replaceStoreCurrency = `		Client.loadFile(
-			DB.INTERFACE_PATH +
-				'item/' +
-				(item.IsIdentified ? currencyit.identifiedResourceName : currencyit.unidentifiedResourceName) +
-				'.bmp',
-			function (data) {
-				content
-					.find('.item[data-index="' + item.index + '"] .currency_icon')
-					.css('backgroundImage', 'url(' + data + ')');
-			},
-			function () {
-				if (item.currencyITID) {
-					content
-						.find('.item[data-index="' + item.index + '"] .currency_icon')
-						.css('backgroundImage', 'url(https://static.divine-pride.net/images/items/item/' + item.currencyITID + '.png)');
-				}
-			}
-		);`;
-
-for (const [oldStr, newStr] of [
-	[targetStoreCurrency.replace(/\n/g, '\r\n'), replaceStoreCurrency.replace(/\n/g, '\r\n')],
-	[targetStoreCurrency, replaceStoreCurrency]
-]) {
-	if (content.includes(oldStr)) {
-		content = content.replace(oldStr, newStr);
-		patches++;
-		console.log('✓ Patch 15 (NpcStore currency icon Divine Pride fallback) applied');
-		break;
-	}
+if (content.includes(targetStoreCurrency)) {
+	content = content.replace(targetStoreCurrency, replaceStoreCurrency);
+	patches++;
+	console.log('✓ Patch 15 (NpcStore currency icon Divine Pride fallback) applied');
 }
+
 
 // Patch 16: NpcStore drag image safety check
 const targetStoreDrag = `		img = new Image();
@@ -1337,6 +1142,42 @@ if (content.includes('Thematic BGM Groups & Randomization System')) {
 			break;
 		}
 	}
+}
+
+// Patch 21: Fix typo coparison_disable_card_slot.bmp -> comparison_disable_card_slot.bmp
+if (content.includes('coparison_disable_card_slot.bmp')) {
+	const count = content.split('coparison_disable_card_slot.bmp').length - 1;
+	content = content.split('coparison_disable_card_slot.bmp').join('comparison_disable_card_slot.bmp');
+	patches += count;
+	console.log(`✓ Patch 21 (Fixed coparison typo) applied to ${count} places`);
+}
+
+// Patch 22: Hide empty cardlist when item has no slots and no cards
+const oldCardDisplay = '\t\t\t\tconst slotCount = it.slotCount || 0;\n\t\t\t\tif (cardListParent) cardListParent.style.display = "block";';
+const newCardDisplay = '\t\t\t\tconst slotCount = it.slotCount || 0;\n\t\t\t\tconst hasCards = !!(item.slot && (item.slot.card1 || item.slot.card2 || item.slot.card3 || item.slot.card4));\n\t\t\t\tif (cardListParent) cardListParent.style.display = (slotCount > 0 || hasCards) ? "block" : "none";';
+
+for (const [oldStr, newStr] of [
+	[oldCardDisplay.replace(/\n/g, '\r\n'), newCardDisplay.replace(/\n/g, '\r\n')],
+	[oldCardDisplay, newCardDisplay]
+]) {
+	if (content.includes(oldStr)) {
+		const count = content.split(oldStr).length - 1;
+		content = content.split(oldStr).join(newStr);
+		patches += count;
+		console.log(`✓ Patch 22 (Hide empty cardlist on 0 slots) applied to ${count} places`);
+		break;
+	}
+}
+
+// Patch 23: Clean Equipment & PlayerViewEquip item name styling
+const oldEqSpanCRLF = 'line-height: 12px;\\r\\n\tword-break: break-all;\\r\\n\toverflow: hidden;\\r\\n\ttext-shadow: 1px 1px white;';
+const newEqSpanCRLF = 'line-height: 24px;\\r\\n\twhite-space: nowrap;\\r\\n\ttext-overflow: ellipsis;\\r\\n\toverflow: hidden;\\r\\n\ttext-shadow: 1px 1px white;';
+
+if (content.includes(oldEqSpanCRLF)) {
+	const count = content.split(oldEqSpanCRLF).length - 1;
+	content = content.split(oldEqSpanCRLF).join(newEqSpanCRLF);
+	patches += count;
+	console.log(`✓ Patch 23 (Equipment name single-line ellipsis CRLF) applied to ${count} places`);
 }
 
 fs.writeFileSync(onlinePath, content, 'utf8');

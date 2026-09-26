@@ -1,6 +1,36 @@
-# Base otimizada: reutiliza imagem com extensões PHP e Composer do registry local (build em 1s)
-ARG BASE_IMAGE=127.0.0.1:5000/ragnarok/panel:v2
-FROM ${BASE_IMAGE}
+FROM php:8.2-cli-alpine
+
+# Dependências básicas do sistema e mirror de baixa latência (UFPR C3SL)
+RUN echo "options timeout:2 attempts:2" >> /etc/resolv.conf 2>/dev/null || true \
+    && sed -i 's|dl-cdn.alpinelinux.org/alpine|alpinelinux.c3sl.ufpr.br|g' /etc/apk/repositories
+
+RUN timeout 120 apk add --no-cache \
+    bash \
+    curl \
+    git \
+    unzip \
+    libzip-dev \
+    icu-dev \
+    mysql-client
+
+# Instalador de extensões PHP com versão pinada (evita invalidar o cache Docker)
+ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/download/2.5.3/install-php-extensions /usr/local/bin/
+
+ARG BUILD_JOBS=""
+
+RUN NPROC=${BUILD_JOBS:-$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN || echo 4)} \
+    && export MAKEFLAGS="-j${NPROC}" \
+    && echo "=== Compilando extensões essenciais do PHP utilizando ${NPROC} threads ===" \
+    && timeout 300 install-php-extensions \
+    pdo_mysql \
+    bcmath \
+    intl \
+    zip \
+    opcache \
+    pcntl
+
+# Copiar Composer oficial
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 

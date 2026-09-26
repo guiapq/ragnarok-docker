@@ -27,9 +27,9 @@ registry-down:
 	docker compose stop registry
 
 tag-images:
-	docker tag ragnarok-docker-rathena $(REGISTRY)/ragnarok/rathena:$(TAG) || true
-	docker tag ragnarok-docker-robrowser $(REGISTRY)/ragnarok/robrowser:$(TAG) || true
-	docker tag ragnarok-docker-panel $(REGISTRY)/ragnarok/panel:$(TAG) || true
+	docker tag ragnarok-docker-rathena:latest $(REGISTRY)/ragnarok/rathena:$(TAG) 2>/dev/null || docker tag ragnarok-docker-rathena $(REGISTRY)/ragnarok/rathena:$(TAG) || true
+	docker tag ragnarok-docker-robrowser:latest $(REGISTRY)/ragnarok/robrowser:$(TAG) 2>/dev/null || docker tag ragnarok-docker-robrowser $(REGISTRY)/ragnarok/robrowser:$(TAG) || true
+	docker tag ragnarok-docker-panel:latest $(REGISTRY)/ragnarok/panel:$(TAG) 2>/dev/null || docker tag ragnarok-docker-panel $(REGISTRY)/ragnarok/panel:$(TAG) || true
 
 push-images: tag-images
 	docker push $(REGISTRY)/ragnarok/rathena:$(TAG)

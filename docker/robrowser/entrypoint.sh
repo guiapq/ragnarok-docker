@@ -10,25 +10,6 @@ if [ ! -L /opt/roBrowserLegacy/client ]; then
     ln -s . /opt/roBrowserLegacy/client
 fi
 
-# 2. Pipeline dinâmica de sincronização do itemInfo.lua
-if [ -f /opt/tools/generate_item_info_lua.py ]; then
-    ITEM_DB_FOUND=""
-    if [ -f "/opt/roBrowserLegacy/data/db/pre-re/item_db.txt" ]; then
-        ITEM_DB_FOUND="/opt/roBrowserLegacy/data/db/pre-re/item_db.txt"
-        RATHENA_DIR="/opt/roBrowserLegacy/data"
-    elif [ -f "/opt/rathena/db/pre-re/item_db.txt" ]; then
-        ITEM_DB_FOUND="/opt/rathena/db/pre-re/item_db.txt"
-        RATHENA_DIR="/opt/rathena"
-    fi
-
-    if [ -n "$ITEM_DB_FOUND" ]; then
-        echo "=== [Pipeline roBrowser] Gerando System/itemInfo.lua a partir de $ITEM_DB_FOUND ==="
-        RATHENA_ROOT="$RATHENA_DIR" \
-        OUTPUT_ITEM_INFO="/opt/roBrowserLegacy/System/itemInfo.lua" \
-        python3 /opt/tools/generate_item_info_lua.py || echo "[AVISO] Falha ao gerar itemInfo.lua dinamicamente, mantendo versão existente."
-    fi
-fi
-
 # 3. Aplicar patches no bundle compilado Online.js
 if [ -f /opt/patch_online.js ]; then
     echo "=== [Pipeline roBrowser] Aplicando patches no Online.js ==="
