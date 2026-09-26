@@ -45,7 +45,7 @@ if [ -f .env ]; then
 fi
 
 # Instalação das dependências
-if [ ! -d "vendor" ]; then
+if [ ! -f "vendor/autoload.php" ]; then
     echo "Instalando dependências do Composer (Laravel + Filament)..."
     composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev || {
         echo "[WARN] composer install normal falhou. Tentando com --ignore-platform-reqs..."
