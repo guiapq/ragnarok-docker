@@ -513,7 +513,7 @@ def main():
                 lines.append(line)
                 continue
 
-            # Equipamentos apenas: Tipo 4 (Armas) e Tipo 5 (Armaduras/Acessórios)
+            # Equipamentos apenas: Tipo 5 (Armas) e Tipo 4 (Armaduras/Acessórios)
             if item_type not in (4, 5):
                 lines.append(line)
                 continue
@@ -522,7 +522,7 @@ def main():
             tier_counts[tier] += 1
             total_equips += 1
 
-            if item_type == 4:
+            if item_type == 5:
                 script = generate_weapon_affixes(tier)
                 weapons_count += 1
             else:
