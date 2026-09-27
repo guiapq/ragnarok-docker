@@ -133,6 +133,43 @@ DELETE FROM `login` WHERE account_id NOT IN (1);
 SET FOREIGN_KEY_CHECKS = 1;
 EOSQL
 
+# Re-popular as 22 cidades capitais seguras e atualizar world_metadata com a nova seed real
+docker exec ragnarok-db mysql -u ragnarok -pragnarok ragnarok -e "
+INSERT INTO \`world_map_conquests\` (\`map_name\`, \`seed\`, \`conquered_by\`, \`conquered_at\`) VALUES
+('prontera', '${SEED}', 'Sistema', NOW()),
+('izlude', '${SEED}', 'Sistema', NOW()),
+('geffen', '${SEED}', 'Sistema', NOW()),
+('morocc', '${SEED}', 'Sistema', NOW()),
+('payon', '${SEED}', 'Sistema', NOW()),
+('alberta', '${SEED}', 'Sistema', NOW()),
+('aldebaran', '${SEED}', 'Sistema', NOW()),
+('comodo', '${SEED}', 'Sistema', NOW()),
+('yuno', '${SEED}', 'Sistema', NOW()),
+('amatsu', '${SEED}', 'Sistema', NOW()),
+('gonryun', '${SEED}', 'Sistema', NOW()),
+('umbala', '${SEED}', 'Sistema', NOW()),
+('lighthalzen', '${SEED}', 'Sistema', NOW()),
+('louyang', '${SEED}', 'Sistema', NOW()),
+('ayothaya', '${SEED}', 'Sistema', NOW()),
+('einbroch', '${SEED}', 'Sistema', NOW()),
+('einbech', '${SEED}', 'Sistema', NOW()),
+('hugel', '${SEED}', 'Sistema', NOW()),
+('rachel', '${SEED}', 'Sistema', NOW()),
+('veins', '${SEED}', 'Sistema', NOW()),
+('lutie', '${SEED}', 'Sistema', NOW()),
+('jawaii', '${SEED}', 'Sistema', NOW());
+
+CREATE TABLE IF NOT EXISTS \`world_metadata\` (
+    \`key\` VARCHAR(255) PRIMARY KEY,
+    \`value\` TEXT NULL,
+    \`created_at\` TIMESTAMP NULL,
+    \`updated_at\` TIMESTAMP NULL
+);
+INSERT INTO \`world_metadata\` (\`key\`, \`value\`, \`updated_at\`) 
+VALUES ('active_seed', '${SEED}', NOW())
+ON DUPLICATE KEY UPDATE \`value\` = '${SEED}', \`updated_at\` = NOW();
+"
+
 # 5. Reconstruir roadmin do zero
 echo -e "${CYAN}--> [2/4] Reconstruindo conta roadmin do zero...${RESET}"
 docker exec -i ragnarok-db mysql -u ragnarok -pragnarok ragnarok << 'EOSQL'

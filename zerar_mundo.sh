@@ -162,11 +162,12 @@ DELETE FROM `guild_member` WHERE char_id IN (SELECT char_id FROM temp_chars_to_d
 DELETE FROM `guild` WHERE char_id IN (SELECT char_id FROM temp_chars_to_delete);
 DELETE FROM `party` WHERE leader_char IN (SELECT char_id FROM temp_chars_to_delete);
 
--- Limpar eventos e telemetrias desses chars
-DELETE FROM `event_speedruns` WHERE char_id IN (SELECT char_id FROM temp_chars_to_delete);
-DELETE FROM `event_mvp_kills` WHERE char_id IN (SELECT char_id FROM temp_chars_to_delete);
-DELETE FROM `world_map_conquests` WHERE conquered_by IN (SELECT name FROM temp_chars_to_delete);
+-- Resetar tabelas de eventos e rankings da run anterior
+TRUNCATE TABLE `event_speedruns`;
+TRUNCATE TABLE `event_mvp_kills`;
 
+-- Resetar completamente o sistema de conquista territorial e névoa de guerra
+TRUNCATE TABLE `world_map_conquests`;
 
 -- 4. Excluir os personagens da tabela char
 DELETE FROM `char` WHERE char_id IN (SELECT char_id FROM temp_chars_to_delete);
@@ -179,12 +180,52 @@ DELETE FROM `global_acc_reg_num` WHERE account_id NOT IN (SELECT account_id FROM
 DELETE FROM `global_acc_reg_str` WHERE account_id NOT IN (SELECT account_id FROM temp_protected_accounts);
 DELETE FROM `login` WHERE account_id NOT IN (SELECT account_id FROM temp_protected_accounts);
 
--- 6. Zerar o servidor: resetar status online e sessões
-UPDATE `char` SET `online` = 0;
+-- 6. Zerar o servidor: resetar status online, sessões e reposicionar personagens para Prontera
+UPDATE `char` SET 
+    `last_map` = 'prontera', `last_x` = 155, `last_y` = 185, 
+    `save_map` = 'prontera', `save_x` = 155, `save_y` = 185,
+    `online` = 0;
 TRUNCATE TABLE `ragsrvinfo`;
 
 SET FOREIGN_KEY_CHECKS = 1;
 EOSQL
+
+# Re-popular as 22 cidades capitais seguras e atualizar world_metadata com a seed ativa real
+docker exec ragnarok-db mysql -u ragnarok -pragnarok ragnarok -e "
+INSERT INTO \`world_map_conquests\` (\`map_name\`, \`seed\`, \`conquered_by\`, \`conquered_at\`) VALUES
+('prontera', '${CURRENT_SEED}', 'Sistema', NOW()),
+('izlude', '${CURRENT_SEED}', 'Sistema', NOW()),
+('geffen', '${CURRENT_SEED}', 'Sistema', NOW()),
+('morocc', '${CURRENT_SEED}', 'Sistema', NOW()),
+('payon', '${CURRENT_SEED}', 'Sistema', NOW()),
+('alberta', '${CURRENT_SEED}', 'Sistema', NOW()),
+('aldebaran', '${CURRENT_SEED}', 'Sistema', NOW()),
+('comodo', '${CURRENT_SEED}', 'Sistema', NOW()),
+('yuno', '${CURRENT_SEED}', 'Sistema', NOW()),
+('amatsu', '${CURRENT_SEED}', 'Sistema', NOW()),
+('gonryun', '${CURRENT_SEED}', 'Sistema', NOW()),
+('umbala', '${CURRENT_SEED}', 'Sistema', NOW()),
+('lighthalzen', '${CURRENT_SEED}', 'Sistema', NOW()),
+('louyang', '${CURRENT_SEED}', 'Sistema', NOW()),
+('ayothaya', '${CURRENT_SEED}', 'Sistema', NOW()),
+('einbroch', '${CURRENT_SEED}', 'Sistema', NOW()),
+('einbech', '${CURRENT_SEED}', 'Sistema', NOW()),
+('hugel', '${CURRENT_SEED}', 'Sistema', NOW()),
+('rachel', '${CURRENT_SEED}', 'Sistema', NOW()),
+('veins', '${CURRENT_SEED}', 'Sistema', NOW()),
+('lutie', '${CURRENT_SEED}', 'Sistema', NOW()),
+('jawaii', '${CURRENT_SEED}', 'Sistema', NOW());
+
+CREATE TABLE IF NOT EXISTS \`world_metadata\` (
+    \`key\` VARCHAR(255) PRIMARY KEY,
+    \`value\` TEXT NULL,
+    \`created_at\` TIMESTAMP NULL,
+    \`updated_at\` TIMESTAMP NULL
+);
+INSERT INTO \`world_metadata\` (\`key\`, \`value\`, \`updated_at\`) 
+VALUES ('active_seed', '${CURRENT_SEED}', NOW())
+ON DUPLICATE KEY UPDATE \`value\` = '${CURRENT_SEED}', \`updated_at\` = NOW();
+"
 
 # Limpar sessões ativas do Laravel se existir
 docker exec ragnarok-db mysql -u ragnarok -pragnarok ragnarok -e "
@@ -204,6 +245,7 @@ echo -e "${GREEN}${BOLD}========================================================
 echo -e "${GREEN}${BOLD}           MUNDO ZERADO COM SUCESSO!                           ${RESET}"
 echo -e "${GREEN}${BOLD}================================================================${RESET}"
 echo -e "  🌱 ${BOLD}Seed Mantida:${RESET}           ${CYAN}${POST_SEED}${RESET}"
+echo -e "  🏰 ${BOLD}Conquista Territorial:${RESET} ${GREEN}Resetada (rotas bloqueadas e 22 cidades seguras)${RESET}"
 echo -e "  🛡️  ${BOLD}Contas de Teste/Admin:${RESET} ${GREEN}Preservadas (roadmin e teste_* intactos)${RESET}"
 echo -e "  🗑️  ${BOLD}Chars Normais Removidos:${RESET}${YELLOW} ${COUNT_CHARS} personagem(ns)${RESET}"
 echo -e "  🔄 ${BOLD}Status do Servidor:${RESET}     ${GREEN}Zerado e pronto para novas conexões${RESET}"
