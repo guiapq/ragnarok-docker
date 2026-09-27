@@ -121,6 +121,9 @@ if [ "${ENABLE_RANDOM_MAPS:-true}" = true ]; then
     run_randomizer "Randomizing world map topology and warps (v3 Roguelike)" tools/map_randomizer/randomize_map_topology.py
 fi
 
+echo "Generating deterministic Map Spawns (@warp to town center or portal)..."
+python3 tools/generate_map_spawns.py
+
 echo "Generating deterministic Level Up Table (Pufs & Buffs per seed)..."
 python3 tools/generate_levelup_table.py
 

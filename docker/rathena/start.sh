@@ -149,6 +149,14 @@ CREATE TABLE IF NOT EXISTS world_map_connections (
     PRIMARY KEY (from_map, to_map, seed),
     INDEX idx_from_seed (from_map, seed)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS world_map_spawns (
+    map_name VARCHAR(32) PRIMARY KEY,
+    x SMALLINT NOT NULL,
+    y SMALLINT NOT NULL,
+    type VARCHAR(16) NOT NULL DEFAULT 'portal',
+    note VARCHAR(64) NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 " 2>/dev/null || true
 
 # Garantir compatibilidade do schema da tabela char

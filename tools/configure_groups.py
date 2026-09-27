@@ -92,6 +92,8 @@ def patch_group_0_commands(content: str) -> tuple[str, bool]:
 
     required_commands = [
         "warp",
+        "rura",
+        "mapmove",
         "go",
         "autoloot",
         "alootid",
