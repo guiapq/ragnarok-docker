@@ -190,6 +190,10 @@ if ! grep -q "portal_auras.txt" "$NPCCONF"; then
     echo "npc: npc/custom/portal_auras.txt" >> "$NPCCONF"
 fi
 
+if ! grep -q "convenience_dealers.txt" "$NPCCONF"; then
+    echo "npc: npc/custom/convenience_dealers.txt" >> "$NPCCONF"
+fi
+
 #################################
 # 5 - garantir carregamento dos NPCs custom
 #################################
