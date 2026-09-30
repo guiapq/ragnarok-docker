@@ -56,18 +56,23 @@ make doctor
 make up
 ```
 
-## 6. Gerar um mundo procedural
+## 5. Gerar um novo mundo procedural (Recomendado)
+
+O script unificado `./novo_mundo.sh` zera o banco, reconstrói o `roadmin` (GM 99), as 14 contas de teste por classe, re-randomiza toda a arquitetura procedural e sobe os containers automaticamente:
 
 ```bash
-./new_world.sh minha-seed --force
+# Gera mundo com seed aleatória
+./novo_mundo.sh
+
+# Ou especifique sua seed personalizada
+./novo_mundo.sh minha-seed-epica
 ```
 
-> `--force` é obrigatório por segurança, pois a operação recria `data/db`, `data/npc` e `data/conf`.
+## 6. Acessos do Ambiente
 
-## 7. Acessos
-
-- Cliente web / database: `http://127.0.0.1:8003`
-- phpMyAdmin: `http://127.0.0.1:8080`
+- **Cliente do Jogo no Navegador:** `http://localhost:8001`
+- **Painel de Controle (Filament):** `http://localhost:8000`
+- **phpMyAdmin (Banco SQL):** `http://localhost:8080`
 
 Para expor em rede local, defina no `.env`:
 
@@ -78,9 +83,10 @@ BIND_IP=0.0.0.0
 ## Comandos úteis
 
 ```bash
-make up
-make down
-make world SEED=wolfie-maxxer
-make logs
-make ps
+./novo_mundo.sh              # Gera novo mundo do zero com 1 comando
+make up                      # Inicia os serviços em segundo plano
+make down                    # Para todos os containers
+make logs                    # Visualiza logs em tempo real
+make ps                      # Verifica o status dos containers
+make doctor                  # Executa diagnóstico do ambiente
 ```

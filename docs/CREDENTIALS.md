@@ -22,7 +22,30 @@ O sistema provisiona e garante automaticamente a conta administrativa no boot do
 
 ---
 
-## 2. Banco de Dados MariaDB
+## 2. Contas de Teste Pré-Configuradas (14 Classes - Níveis e Equipamentos)
+
+O script `./novo_mundo.sh` e a migração de seed do painel Laravel recriam automaticamente 14 contas de teste especializadas prontas para jogar e validar o balanceamento de cada classe:
+
+| Conta / Login | Senha | Classe Inicial | Equipamentos & Habilidades |
+| :--- | :--- | :--- | :--- |
+| `teste_swordie` | `teste123` | Espadachim | Espada de duas mãos, poções e habilidades de combate |
+| `teste_mage` | `teste123` | Mago | Cajado arcano, poções de SP e magias elementais |
+| `teste_archer` | `teste123` | Arqueiro | Arco composto, flechas elementais e olho de águia |
+| `teste_merchant` | `teste123` | Mercador | Machado, carrinho de mão e habilidades de comércio |
+| `teste_acolyte` | `teste123` | Noviço | Maça sagrada, bênção, cura e agilidade |
+| `teste_thief` | `teste123` | Gatuno | Adagas, furto, esconderijo e esquiva |
+| `teste_knight` | `teste123` | Cavaleiro | Montaria Peco Peco, lança pesada e impacto explosivo |
+| `teste_wizard` | `teste123` | Bruxo | Magias de área avançadas (Nevasca, Chuva de Meteoros) |
+| `teste_blacksmith`| `teste123` | Ferreiro | Martelos de forja, adrenalina pura e poder supremo |
+| `teste_hunter` | `teste123` | Caçador | Falcão adestrado, armadilhas e rajada de flechas |
+| `teste_priest` | `teste123` | Sacerdote | Magnus Exorcismus, santuário e suporte divino |
+| `teste_assassin` | `teste123` | Assassino | Katar de duas lâminas, lâminas destruidoras e veneno |
+| `teste_gunslinger`| `teste123` | Justiceiro | Revólveres, rifle de precisão e munição balística |
+| `teste_extended` | `teste123` | Taekwon / Ninja | Habilidades marciais, chutes aéreos e jutsus |
+
+---
+
+## 3. Banco de Dados MariaDB
 
 As credenciais ativas são lidas do arquivo `.env` na raiz do projeto. Caso o arquivo seja corrompido ou perdido, as seguintes chaves de segurança randômicas estão definidas como fallback nos Dockerfiles:
 
@@ -43,7 +66,7 @@ Definidas em `docker/rathena/Dockerfile` e `docker/panel/Dockerfile`:
 
 ---
 
-## 3. Procedimentos de Emergência e Recuperação
+## 4. Procedimentos de Emergência e Recuperação
 
 ### Como resetar a senha da conta `roadmin` manualmente via CLI
 Se por algum motivo a senha for alterada e esquecida, execute o comando direto no container MariaDB:

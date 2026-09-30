@@ -145,23 +145,27 @@ Ao derrotar a entidade final:
 
 ```
 [FASE 1: Topologia & Rota Contígua]
- ├── Extração dos pontos cardeais de warps (baseado em world_map_grids.py)
- ├── Algoritmo de Pathfinding para rotas direcionadas (Oeste -> Leste ou Norte -> Sul)
- └── Geração automatizada da cadeia de mapas no instance_db.txt
+ ├── [x] Extração dos pontos cardeais de warps e coordenadas determinísticas (476 spawns)
+ ├── [x] Algoritmo de Pathfinding e Topologia v4 (Campanha em 4 Tiers determinísticos)
+ ├── [x] 44 rotas de portais geradas proceduralmente com trancas e auras visuais
+ └── [x] Mapflags de loadevent para mais de 1025 mapas
 
-[FASE 2: Motor de Spawns de Horror & Perigo]
- ├── Curva de perigo por nível (Danger Curve) mapeada de Lv 1 a Lv 98
- ├── Seleção de monstros por faixa de nível com filtro de raças sombrias
- └── Geração de scripts de monstros para a instância (prefixos de corrupção)
+[FASE 2: Motor de Spawns, Perigo & Miasma]
+ ├── [x] Sistema de Miasma Dinâmico & Agressivo (9 estágios, letal em 3 minutos)
+ ├── [x] Spawn dinâmico de aberrações corrompidas (Familiars, Zumbis, Múmias, Isis, Raydrics)
+ ├── [x] Expurgação e Conquista de Territórios (15 abates para purificar o mapa)
+ └── [x] Bônus de Conquista: +50% EXP e +50% Drop permanentemente no mapa libertado
 
-[FASE 3: Scripting e Mecânicas de Jogo no rAthena]
- ├── Script mestre da instância (instance_create, instance_enter, temporizador)
- ├── Barreiras de colisão com verificação de nível mínimo entre setores
- ├── Efeitos imersivos de ambientação (noite constante, clima de cinzas, mensagens de terror)
- └── O Selo da Transcendência: verificação rigorosa de Base 99 e Job 70 no portal final
+[FASE 3: Os 7 Fragmentos do Cometa & Lore Cósmica]
+ ├── [x] Alocação dos 7 Fragmentos Cósmicos em calabouços profundos guardados por MVPs
+ ├── [x] Algoritmo de Taxi Distance em grafo para calcular distância em saltos
+ ├── [x] Comando @cometa e Radar em tempo real integrado ao rAthena
+ ├── [x] Campo de Aprendizes Narrativo: Bruxa Shion com narrativa da lore na 1ª interação
+ └── [x] Guardas do Castelo: Bênçãos de combate, Kit de Suprimentos do Recruta e atalhos de teleporte
 
-[FASE 4: Integração com Painel & Leaderboard]
- ├── Telemetria de conclusão da instância vinculada ao banco MySQL
- ├── Atualização do painel Filament com o ranking da Grande Travessia
- └── Visualizador visual do corredor da seed no painel web
+[FASE 4: Rebalanceamento, Conveniência & Orquestração]
+ ├── [x] Rebalanceamento de 123 cartas clássicas subutilizadas (enhance_unpopular_cards.py)
+ ├── [x] Vendedores externos de Conveniência (Utilidades e Equipamentos) nas 23 cidades
+ ├── [x] Script de 1 comando novo_mundo.sh: reconstrução atômica de roadmin e 14 contas de teste por classe
+ └── [x] Migrações procedurais sincronizadas com o banco MariaDB e o painel Laravel Filament
 ```
