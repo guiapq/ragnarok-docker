@@ -235,6 +235,9 @@ fi
 if [ -f "data_base/npc/custom/convenience_dealers.txt" ]; then
     cp -f data_base/npc/custom/convenience_dealers.txt data/npc/custom/
 fi
+if [ -f "data_base/npc/custom/starter_spawns_boost.txt" ]; then
+    cp -f data_base/npc/custom/starter_spawns_boost.txt data/npc/custom/
+fi
 
 # Configurar nova seed no .env.rando
 sed -i "s/^WORLD_SEED=.*/WORLD_SEED=$SEED/" .env.rando

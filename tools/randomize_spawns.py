@@ -111,7 +111,7 @@ def choose_mob(original_id):
 # localizar arquivos
 #################################
 
-SPAWN_FILES=glob.glob(f"{ROOT}/npc/re/mobs/**/*.txt",recursive=True)
+SPAWN_FILES = glob.glob(f"{ROOT}/npc/re/mobs/**/*.txt", recursive=True) + glob.glob(f"{ROOT}/npc/pre-re/mobs/**/*.txt", recursive=True)
 
 print("Spawn files found:",len(SPAWN_FILES))
 
