@@ -165,6 +165,8 @@ DELETE FROM `party` WHERE leader_char IN (SELECT char_id FROM temp_chars_to_dele
 -- Resetar tabelas de eventos e rankings da run anterior
 TRUNCATE TABLE `event_speedruns`;
 TRUNCATE TABLE `event_mvp_kills`;
+TRUNCATE TABLE `run_goal_leaderboard`;
+TRUNCATE TABLE `run_metadata`;
 
 -- Resetar completamente o sistema de conquista territorial e névoa de guerra
 TRUNCATE TABLE `world_map_conquests`;

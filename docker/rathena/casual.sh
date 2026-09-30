@@ -30,6 +30,7 @@ echo "Rathena path: $RATHENA"
 
 sed -i 's/base_exp_rate:.*/base_exp_rate: 33000/' $RATHENA/conf/battle/exp.conf || true
 sed -i 's/job_exp_rate:.*/job_exp_rate: 33000/' $RATHENA/conf/battle/exp.conf || true
+sed -i 's/multi_level_up:.*/multi_level_up: yes/' $RATHENA/conf/battle/exp.conf || true
 
 #################################
 # 2 - DROP rates (Pacing Roguelike v2)
@@ -183,6 +184,10 @@ fi
 # Sistema de Reconquista Territorial & Névoa de Guerra (v3)
 if ! grep -q "map_conquest.txt" "$NPCCONF"; then
     echo "npc: npc/custom/map_conquest.txt" >> "$NPCCONF"
+fi
+
+if ! grep -q "portal_auras.txt" "$NPCCONF"; then
+    echo "npc: npc/custom/portal_auras.txt" >> "$NPCCONF"
 fi
 
 #################################

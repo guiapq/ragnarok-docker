@@ -5,8 +5,8 @@ window.ROConfigLocal = {
     remoteClient: "${RO_REMOTE_CLIENT}",
 
     servers: [{
-        display: "Docker Ragnarok",
-        desc: "rAthena Docker Server",
+        display: "Ato 1: A Lenda do Cometa",
+        desc: "Ato 1: A Lenda do Cometa",
 
         // Endereço interno que o wsProxy (dentro do container robrowser) usa para conectar ao rAthena
         address: "ragnarok-server",
@@ -32,4 +32,3 @@ window.ROConfigLocal = {
     loadLua: true,
     customItemInfo: ['System/itemInfo.lua']
 };
-

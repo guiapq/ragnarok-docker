@@ -8408,6 +8408,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Sorte +2^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Esquiva Perfeita +6, Ganho de Zeny +11%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8430,6 +8431,7 @@ local normal_items = {
             "  ^008800Vitalidade +1^000000",
             "  ^FF0000HP Maximo +100^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ATK +23, Precisão +12]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8451,6 +8453,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^FF0000HP Maximo +700^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Max HP +7%, DEF +3]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8473,6 +8476,7 @@ local normal_items = {
             "  ^008800Destreza +1^000000",
             "  ^0000FFPrecisao +3^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Precisão +20, Dano a Distância +7%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8513,6 +8517,7 @@ local normal_items = {
             "  ^008800Sorte +1^000000",
             "  ^FF0000Critico +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano Crítico +14%, Ganho de Zeny +9%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8555,6 +8560,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Forca +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ASPD +5%, Precisão +12]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8577,6 +8583,7 @@ local normal_items = {
             "  ^008800Agilidade +1^000000",
             "  ^008800Esquiva +2^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Esquiva +11, Vel. de Movimento +7%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8598,6 +8605,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^0000FFSP Maximo +80^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Max SP +5%, Regeneração de SP +16%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8620,6 +8628,7 @@ local normal_items = {
             "  ^008800Vitalidade +1^000000",
             "  ^FF0000HP Maximo +100^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Max HP +4%, DEF +2]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8641,6 +8650,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^FF0000HP Maximo +400^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: DEF +5, MDEF +4]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8684,6 +8694,7 @@ local normal_items = {
             "  ^FF0000HP Maximo +400^000000",
             "  ^0000FFSP Maximo +50^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Max HP +6%, DEF +3]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8705,6 +8716,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Esquiva +10^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Esquiva +10]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8726,6 +8738,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Agilidade +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ATK +16, Precisão +10]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8744,6 +8757,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Atordoar +8%, Dano Crítico +14%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8766,6 +8780,7 @@ local normal_items = {
             "  ^008800Inteligencia +1^000000",
             "  ^0000FFSP Maximo +10^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ATK +23, Precisão +14]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8787,6 +8802,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Forca +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ATK +25, Precisão +13]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8805,6 +8821,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano contra monstros de Água +15%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8826,6 +8843,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Destreza +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Capacidade de Carga +600, ATK +12]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8847,6 +8865,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Vitalidade +2^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Esquiva Perfeita +5]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8868,6 +8887,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Inteligencia +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: MDEF +3]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8886,6 +8906,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Sono +8%, ATK +21]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8904,6 +8925,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Atordoar +6%, Precisão +16]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8926,6 +8948,7 @@ local normal_items = {
             "  ^008800Agilidade +1^000000",
             "  ^008800Esquiva +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Max HP +6%, DEF +4]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8947,6 +8970,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Agilidade +2^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ASPD +6%, Esquiva +12]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8968,6 +8992,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Forca +2^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ATK +22, ASPD +5%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -8989,6 +9014,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^FF0000Critico +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ATK +22, Precisão +9]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9049,6 +9075,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^000088DEF +2^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: DEF +3, MDEF +4]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9070,6 +9097,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^0000FFHabilita o uso de TF_DETOXIFY Nv. 1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Envenenar +10%, ATK +22]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9131,6 +9159,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Esquiva Perfeita +5]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9149,6 +9178,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Cegueira +8%, Precisão +24]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9167,6 +9197,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Regeneração Natural de HP +53%, Pilhagem de Zeny em Monstros]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9252,6 +9283,7 @@ local normal_items = {
             "  ^000088DEF +2^000000",
             "  ^008800Resistencia a Vento +10%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Max HP +7%, DEF +3]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9270,6 +9302,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Congelar +8%, Dano em Água +12%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9291,6 +9324,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^0000FFHabilita o uso de Esconderijo Nv. 1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Esquiva +10]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9348,6 +9382,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Precisão +15]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9387,6 +9422,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano a Distância +6%, Precisão +12]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9490,6 +9526,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ATK +22, Precisão +13]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9530,6 +9567,7 @@ local normal_items = {
             "  ^008800Esquiva +5^000000",
             "  ^008800Resistencia a Vento +30%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: DEF +3, MDEF +5]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9548,6 +9586,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: MATK +5%, Tempo de Conjuração -4%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9609,6 +9648,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^FF4400Dano contra Brutos +20%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Ataque Duplo +14%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9631,6 +9671,7 @@ local normal_items = {
             "  ^000088DEF +1^000000",
             "  ^008800Armadura Indestrutivel em batalha^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ASPD +6%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9649,6 +9690,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Silêncio +8%, ASPD +5%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9691,6 +9733,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Destreza +3^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Ataque Duplo +13%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9772,6 +9815,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^FF4400Dano contra Plantas +20%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano contra monstros Mortos-Vivos +13%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9790,6 +9834,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano Crítico +9%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9851,6 +9896,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Arma Indestrutivel em batalha^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Ataque Duplo +15%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9872,6 +9918,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^0000FFHabilita o uso de MC_DISCOUNT Nv. 5^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano contra monstros de Vento +11%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9890,6 +9937,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano contra monstros de Veneno +12%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9911,6 +9959,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^000088DEF +1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: DEF +4, MDEF +4, Resistência a Petrificação +30%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -9929,6 +9978,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano contra monstros de Terra +14%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -10095,6 +10145,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^0000FFHabilita o uso de Impacto Explosivo Nv. 3^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano contra monstros Fantasmas +13%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -10113,6 +10164,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Chance de Caos +8%, Esquiva +16]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -10134,6 +10186,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^FF0000Critico +9^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Resistência a Água +15%, DEF +3]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -10155,6 +10208,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Resistencia a Terra +15%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Dano contra monstros de Fogo +15%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -10176,6 +10230,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^0000FFHabilita o uso de AS_CLOAKING Nv. 1^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: ASPD +3%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -10802,6 +10857,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^FF4400Dano contra Dragoes +20%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Regeneração de SP +31%, Max SP +5%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -10947,6 +11003,7 @@ local normal_items = {
             "  ^FF4400Dano contra Insetos +7%^000000",
             "  ^FF4400Dano contra Plantas +7%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Regeneração de SP +23%, Max SP +5%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -11113,6 +11170,7 @@ local normal_items = {
             "^0000CDEfeitos:^000000",
             "  ^008800Resistencia a Neutro +20%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Regeneração de SP +21%, Max SP +6%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -11470,6 +11528,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Resistência a Neutro +5%, DEF +4, MDEF +4]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -13234,6 +13293,7 @@ local normal_items = {
             "  ^000088DEF +2^000000",
             "  ^9900FFDEFM +3^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Regeneração de SP +21%, Max SP +7%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -13879,6 +13939,7 @@ local normal_items = {
             "  ^008800Agilidade +1^000000",
             "  ^FF0000Critico +3^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Regeneração de SP +23%, Max SP +6%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -14461,6 +14522,7 @@ local normal_items = {
             "  ^9900FFDEFM -50^000000",
             "  ^FF0000HP Maximo +100%^000000",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Regeneração de SP +24%, Max SP +4%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }
@@ -14902,6 +14964,7 @@ local normal_items = {
         identifiedDescriptionName = {
             "Item oficial do Ragnarok Online.",
             "^777777----------------------------------------^000000",
+            "^00AA00[Enhancer: Regeneração de SP +27%, Max SP +7%]^000000",
             "Tipo: ^000088Carta^000000",
             "Peso: ^0000881^000000"
         }

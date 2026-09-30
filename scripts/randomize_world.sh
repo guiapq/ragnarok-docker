@@ -111,8 +111,12 @@ python3 tools/update_item_prices.py
 echo "Applying Renewal / WoE TE Skill & Combat Rebalance..."
 python3 tools/apply_renewal_rebalance.py
 
+echo "Enhancing unpopular and niche cards (RagnaRogue Enhancer)..."
+python3 tools/enhance_unpopular_cards.py
+
 echo "Generating itemInfo.lua for roBrowser..."
 python3 tools/generate_item_info_lua.py
+python3 tools/enhance_unpopular_cards.py
 
 echo "Configuring rAthena player groups (Group 6 Tester & Player @warp/@go)..."
 python3 tools/configure_groups.py data/conf/groups.conf
@@ -123,6 +127,9 @@ fi
 
 echo "Generating deterministic Map Spawns (@warp to town center or portal)..."
 python3 tools/generate_map_spawns.py
+
+echo "Generating 7 Comet Fragments & Graph Taxi Distance Radar..."
+python3 tools/generate_comet_system.py
 
 echo "Generating deterministic Level Up Table (Pufs & Buffs per seed)..."
 python3 tools/generate_levelup_table.py

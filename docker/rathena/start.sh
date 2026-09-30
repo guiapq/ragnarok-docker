@@ -132,6 +132,37 @@ CREATE TABLE IF NOT EXISTS event_mvp_kills (
     INDEX idx_killed_at (killed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS run_goal_leaderboard (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    char_id INT UNSIGNED NOT NULL,
+    char_name VARCHAR(30) NOT NULL,
+    class SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    seed VARCHAR(64) NOT NULL,
+    fragments_destroyed INT UNSIGNED NOT NULL DEFAULT 0,
+    delivered_final_blow TINYINT(1) NOT NULL DEFAULT 0,
+    maps_conquered INT UNSIGNED NOT NULL DEFAULT 0,
+    mvp_kills INT UNSIGNED NOT NULL DEFAULT 0,
+    mob_kills INT UNSIGNED NOT NULL DEFAULT 0,
+    pvp_kills INT UNSIGNED NOT NULL DEFAULT 0,
+    deaths INT UNSIGNED NOT NULL DEFAULT 0,
+    level_99_time INT UNSIGNED NOT NULL DEFAULT 0,
+    total_score INT NOT NULL DEFAULT 0,
+    medals VARCHAR(255) NOT NULL DEFAULT '',
+    rank_position INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    UNIQUE KEY uk_char_seed (char_id, seed),
+    INDEX idx_seed_score (seed, total_score DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS run_metadata (
+    seed VARCHAR(64) PRIMARY KEY,
+    is_finished TINYINT(1) NOT NULL DEFAULT 0,
+    finished_at DATETIME NULL,
+    winning_killer VARCHAR(30) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS world_map_conquests (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     map_name VARCHAR(32) NOT NULL,

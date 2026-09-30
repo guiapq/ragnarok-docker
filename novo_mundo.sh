@@ -121,6 +121,8 @@ TRUNCATE TABLE `guild`;
 TRUNCATE TABLE `party`;
 TRUNCATE TABLE `event_speedruns`;
 TRUNCATE TABLE `event_mvp_kills`;
+TRUNCATE TABLE `run_goal_leaderboard`;
+TRUNCATE TABLE `run_metadata`;
 TRUNCATE TABLE `world_map_conquests`;
 TRUNCATE TABLE `ragsrvinfo`;
 
@@ -223,6 +225,12 @@ if [ -f "data_base/npc/custom/starter_items.txt" ]; then
 fi
 if [ -f "data_base/npc/custom/map_conquest.txt" ]; then
     cp -f data_base/npc/custom/map_conquest.txt data/npc/custom/
+fi
+if [ -f "data_base/npc/custom/comet_system.txt" ]; then
+    cp -f data_base/npc/custom/comet_system.txt data/npc/custom/
+fi
+if [ -f "data_base/npc/custom/pray.txt" ]; then
+    cp -f data_base/npc/custom/pray.txt data/npc/custom/
 fi
 
 # Configurar nova seed no .env.rando

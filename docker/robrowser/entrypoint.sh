@@ -22,6 +22,9 @@ if [ -f /opt/Config.local.template.js ]; then
     envsubst < /opt/Config.local.template.js > Config.local.js
 fi
 
+# Ajustar título da aba no index.html
+sed -i 's|<title>.*</title>|<title>Ato 1: A Lenda do Cometa</title>|' /opt/roBrowserLegacy/index.html 2>/dev/null || true
+
 # 5. Iniciar serviços de rede
 echo "=== [roBrowser] Iniciando wsproxy e http-server (Porta 8080 / WS 5999) ==="
 wsproxy -a ragnarok-server:6900,ragnarok-server:6121,ragnarok-server:5121 &
